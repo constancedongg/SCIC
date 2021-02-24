@@ -42,11 +42,20 @@
 
 %%
 
+program: 
+	decls EOF { $1 }
+
 decls: 
 
 
 stmt:
-	
+	  expr SEMI 							  {Expr $1}
+	| RETURN expr SEMI 						  {Return $2}
+	| IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
+  	| IF LPAREN expr RPAREN stmt ELSE stmt    { If($3, $5, $7)        }
+  	| FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt
+                      	                      { For($3, $5, $7, $9)   }
+												
 
 typ:
     INT    { Int   }
@@ -63,7 +72,7 @@ unit:
 
 
 expr:
-		 INT_LITERAL 									{ Lit(IntLit($1)) }
+	  INT_LITERAL 									{ Lit(IntLit($1)) }
 	| FLOAT_LITERAL 								{ Lit(FloatLit($1)) }
 	| CHAR_LITERAL 									{ Lit(CharLit($1)) }
 	| STRING_LITERAL 								{ Lit(StringLit($1)) }
