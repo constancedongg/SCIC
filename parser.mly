@@ -12,7 +12,7 @@
 %token IF ELSE NOELSE FOR RETURN 
 %token TYPEOF PRINT INT2FLOAT FLOAT2INT CEIL FLOOR
 %token METER SEC KGRAM AMP CMETER HERTZ GRAM NEWTON NOUNIT
-%token SIZEOF TYPEOF PRINT APPEND ITOF FTOI CEIL FLOOR
+%token SIZEOF TYPEOF PRINT ITOF FTOI CEIL FLOOR
 
 /* literals */
 %token <string> ID /* identifier for variable and function names */
@@ -238,8 +238,6 @@ expr:
    | SIZEOF LPAREN ID RPAREN {SizeOf($3)}
    /* typeof(x) */
    | TYPEOF LPAREN ID RPAREN {TypeOf($3)}
-   /* append(x,10) */
-   | APPEND LPAREN ID COMMA prime RPAREN {Append($3, $5)}
    /* int2float(10) */
    | ITOF LPAREN primeNwithid RPAREN { ItoF($3) }
    /* float2int(10.0) */ 

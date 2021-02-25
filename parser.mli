@@ -58,7 +58,6 @@ type token =
   | NEWTON
   | NOUNIT
   | SIZEOF
-  | APPEND
   | ITOF
   | FTOI
   | ID of (string)
