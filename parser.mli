@@ -58,6 +58,7 @@ type token =
   | NEWTON
   | NOUNIT
   | SIZEOF
+  | APPEND
   | ID of (string)
   | UID of (string)
   | UONE of (string)

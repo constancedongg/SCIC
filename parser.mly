@@ -12,7 +12,7 @@
 %token IF ELSE NOELSE FOR RETURN 
 %token TYPEOF PRINT INT2FLOAT FLOAT2INT CEIL FLOOR
 %token METER SEC KGRAM AMP CMETER HERTZ GRAM NEWTON NOUNIT
-%token SIZEOF TYPEOF PRINT
+%token SIZEOF TYPEOF PRINT APPEND
 
 /* literals */
 %token <string> ID /* identifier for variable and function names */
@@ -181,6 +181,9 @@ stmt:
   	| IF LPAREN expr RPAREN stmt ELSE stmt    { If($3, $5, $7)        }
   	| FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt
                       	                      { For($3, $5, $7, $9)   }
+   /* print(expr) */
+   | PRINT LPAREN expr RPAREN SEMI {Print($3)}
+   
 expr_opt:
     /* nothing */ { Noexpr }
   	| expr          { $1 }
@@ -233,8 +236,8 @@ expr:
    | SIZEOF LPAREN ID RPAREN {SizeOf($3)}
    /* typeof(x) */
    | TYPEOF LPAREN ID RPAREN {TypeOf($3)}
-   /* print(expr) */
-   | PRINT LPAREN expr RPAREN {Print($3)}
+   /* append(x,10) */
+   | APPEND LPAREN ID COMMA prime RPAREN {Append($3, $5)}
 
 lst_block:
   LBRACK opt_lst RBRACK {$2}
