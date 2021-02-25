@@ -214,6 +214,8 @@ expr:
 	| NOT expr 										{ Unop(Not, $2) }
 	| ID ASN expr 								{ Assign($1, $3) }
 	| LPAREN expr RPAREN 							{ $2 }
+   /* function call */ /* equation call */
+   | ID LPAREN args RPAREN             {FunctionCall($1, $3)} 
    /* | '{m} = 10*12/10*'{mm} | */
    | BAR PRIME LBRACE UID RBRACE ASN cexpr TIMES unit BAR SEMI {UnitAssign($4, $7, $9)}
    /* int x = 10/2 */
@@ -239,11 +241,11 @@ expr:
    /* append(x,10) */
    | APPEND LPAREN ID COMMA prime RPAREN {Append($3, $5)}
    /* int2float(10) */
-   | ITOF LPAREN primewithid RPAREN { ItoF($3) }
+   | ITOF LPAREN primeNwithid RPAREN { ItoF($3) }
    /* float2int(10.0) */ 
-   | FTOI LPAREN primewithid RPAREN { FtoI($3) }
-   | CEIL LPAREN primewithid RPAREN { Ceil($3) }
-   | FLOOR LPAREN primewithid RPAREN { Floor($3) }
+   | FTOI LPAREN primeNwithid RPAREN { FtoI($3) }
+   | CEIL LPAREN primeNwithid RPAREN { Ceil($3) }
+   | FLOOR LPAREN primeNwithid RPAREN { Floor($3) }
 
 
 
@@ -253,7 +255,7 @@ lst_block:
 
 opt_lst:
    {[]}
-   | lst {$1}
+   | lst { List.rev $1 }
 
 lst:
    prime {[$1]}
@@ -268,10 +270,20 @@ prime:
 	| TRUE 													{ BoolLit(true) }
 	| FALSE 												{ BoolLit(false) } 
    
+primeNwithid:
+   ID {Id($1)}
+   | INT_LITERAL 									{ Lit(IntLit($1)) }
+   | FLOAT_LITERAL 								{ Lit(FloatLit($1)) }
+
 primewithid:
    ID {Id($1)}
    | INT_LITERAL 									{ Lit(IntLit($1)) }
    | FLOAT_LITERAL 								{ Lit(FloatLit($1)) }
+   | CHAR_LITERAL 									{ Lit(CharLit($1)) }
+	| STRING_LITERAL 								{ Lit(StringLit($1)) }
+	| BOOL_LITERAL 									{ Lit(BoolLit($1)) }
+	| TRUE 													{ BoolLit(true) }
+	| FALSE 												{ BoolLit(false) } 
 
 cexpr:
 	 cexpr TIMES  cexpr 	{ Binop($1, Mul, $3) }
@@ -281,6 +293,23 @@ cexpr:
 	| MINUS expr %prec NEG 	{ Unop(Neg, $2) }
 	| INT_LITERAL 		 	{ Lit(IntLit($1)) }
 	| FLOAT_LITERAL 	 	{ Lit(FloatLit($1)) }
+
+args:
+   {[]}
+   | args_lst { List.rev $1}
+   | equa_args_lst { List.rev $1}
+
+args_lst:
+   primewithid { [$1] }
+   | args_lst COMMA primewithid {$3::$1}
+
+equa_args_lst:
+   equa_arg { [$1] }
+   | equa_args_lst COMMA equa_arg {$3::$1}
+
+equa_arg:
+   ID ASN ID {EquaArg($1, $3)}
+
 /***********************************/
 
 /**************** equal_decl *******************/
