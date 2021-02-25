@@ -12,7 +12,7 @@
 %token IF ELSE NOELSE FOR RETURN 
 %token TYPEOF PRINT INT2FLOAT FLOAT2INT CEIL FLOOR
 %token METER SEC KGRAM AMP CMETER HERTZ GRAM NEWTON NOUNIT
-%token SIZEOF TYPEOF PRINT APPEND
+%token SIZEOF TYPEOF PRINT APPEND ITOF FTOI CEIL FLOOR
 
 /* literals */
 %token <string> ID /* identifier for variable and function names */
@@ -238,6 +238,15 @@ expr:
    | TYPEOF LPAREN ID RPAREN {TypeOf($3)}
    /* append(x,10) */
    | APPEND LPAREN ID COMMA prime RPAREN {Append($3, $5)}
+   /* int2float(10) */
+   | ITOF LPAREN primewithid RPAREN { ItoF($3) }
+   /* float2int(10.0) */ 
+   | FTOI LPAREN primewithid RPAREN { FtoI($3) }
+   | CEIL LPAREN primewithid RPAREN { Ceil($3) }
+   | FLOOR LPAREN primewithid RPAREN { Floor($3) }
+
+
+
 
 lst_block:
   LBRACK opt_lst RBRACK {$2}
@@ -259,6 +268,10 @@ prime:
 	| TRUE 													{ BoolLit(true) }
 	| FALSE 												{ BoolLit(false) } 
    
+primewithid:
+   ID {Id($1)}
+   | INT_LITERAL 									{ Lit(IntLit($1)) }
+   | FLOAT_LITERAL 								{ Lit(FloatLit($1)) }
 
 cexpr:
 	 cexpr TIMES  cexpr 	{ Binop($1, Mul, $3) }

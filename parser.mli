@@ -59,6 +59,8 @@ type token =
   | NOUNIT
   | SIZEOF
   | APPEND
+  | ITOF
+  | FTOI
   | ID of (string)
   | UID of (string)
   | UONE of (string)
