@@ -11,8 +11,12 @@
 %token FUNC EQUA
 %token IF ELSE NOELSE FOR RETURN 
 %token TYPEOF PRINT INT2FLOAT FLOAT2INT CEIL FLOOR
+%token METER SEC KGRAM AMP CMETER HERTZ GRAM NEWTON NOUNIT
 
-%token <string> ID
+/* literals */
+%token <string> ID /* identifier for variable and function names */
+%token <string> UID 
+%token <string> UONE // ?
 %token <int> INT_LITERAL
 %token <float> FLOAT_LITERAL
 %token <char> CHAR_LITERAL
@@ -20,6 +24,7 @@
 %token <bool> BOOL_LITERAL
 %token EOF
 
+/* precedence */
 %nonassoc NOELSE
 %nonassoc ELSE
 
@@ -33,6 +38,7 @@
 %left POW
 %right NOT NEG
 
+// 
 %nonassoc LPAREN LBRACK LBRACE
 %nonassoc RPAREN RBRACK RBRACE
 
@@ -42,38 +48,142 @@
 
 %%
 
-program: 
-	decls EOF { $1 }
+program:
+   decls EOF { $1 }
 
-decls: 
+decls:
+   /* nothing */   { {vars=[]; units=[]; funcs=[]; equas=[];} }
+   | decls var_decl {{
+                  vars = $2 :: $1.vars;
+						units = $1.units;
+						funcs = $1.funcs;
+						equas = $1.equas;
+                  }}
+   | decls unit_decl {{
+                  vars = $1.vars;
+                  units = $2 :: $1.units;
+                  funcs = $1.funcs;
+                  equas = $1.equas;
+  					}}
+   | decls func_decl {{vars = $1.vars;
+						units = $1.units;
+						funcs = $2 :: $1.funcs;
+						equas = $1.equas;}}
+   | decls equa_decl {{
+						vars = $1.vars;
+						units = $1.units;
+						funcs = $1.funcs;
+						equas = $2 :: $1.equas;
+  					}}           
 
+/*************** var_decl ********************/
+var_decl: 
+   /* <type> <unit> <variable_name>; int '{m} x; */
+   typ unit ID SEMI {($1, $2, $3)}
+   /* <type> <variable_name>; int x; */
+   | typ ID SEMI { ($1, NOUNIT, $2) }
+
+typ:
+   INT     { Int   }
+  | FLOAT  { Float }  
+  | CHAR   { Char  }
+  | STRING { String}
+  | BOOL   { Bool  }
+
+unit:
+	PRIME LBRACE uexpr RBRACE { $3 } 
+
+bi_unit:
+	 METER		{ Meter } /* base */
+	| SEC    	{ Second }
+	| KGRAM     { Kilogram }
+	| AMP      	{ Ampere }
+	| HERTZ  	{ Hertz } /* derived */
+	| CMETER    { Centimeter }
+	| GRAM      { Gram }
+	| NEWTON    { Newton }
+
+uexpr:
+	 UONE 							{ $1 }  // ??  |'{a} = '{1}|
+	| UID 							{ Uid($1) } // |'{cm} = 0.01 * '{m} |
+   | bi_unit						{ Uid($1) }
+	| uexpr TIMES uexpr 			{ Binop($1, UMult, $3) }
+	| uexpr DIVIDE uexpr 			{ Binop($1, UDiv, $3) }
+	| uexpr POW INT_LITERAL 		{ Binop($1, UPow, $3) } // float int parsing
+	| uexpr POW FLOAT_LITERAL 		{ Binop($1, UPow, $3) } // limit: not support neg? m^2
+	| LPAREN uexpr RPAREN 			{ $2 }
+   
+
+/***********************************/
+
+
+
+/**************** unit_decl *******************/
+unit_decl:
+   /* |'{m/s}|; */
+   BAR PRIME LBRACE UID RBRACE BAR SEMI {($4)} 
+/***********************************/
+
+/**************** func_decl *******************/
+func_decl:
+   /* <type> <unit> func <function_name> (args) {statement}*/
+   typ unit FUNC ID formals_block stmt_block {{
+      return_type       = $1;
+		return_unit       = $2;
+		func_identifier   = $4;
+		func_formals      = List.rev $5;
+		func_stmts        = List.rev $6
+   }}
+   |typ FUNC ID formals_block stmt_block {{
+      return_type       = $1;
+		return_unit		   = NOUNIT;
+		func_identifier   = $3;
+		func_formals      = List.rev $4;
+		func_stmts        = List.rev $5
+   }}
+
+/***** args *****/
+formals_block:
+   /* ...(args)... */ 
+   LPAREN opt_formals RPAREN { $2 }
+
+opt_formals:
+   /* nothing */ {[]}
+   /* ...(<type> <units> <args_name>, ...)...*/
+   /* ...(<type> <args_name>, ...)...*/ 
+   /* ...(<type> <units> <args_name>, <type> <args_name>)...*/
+   | formals_list {List.rev $1 }
+
+
+formals_list:
+   typ unit ID { [($1, $2, $3)] }
+   | typ ID { [($1, $2)] }
+   | formals_list COMMA typ unit ID { ($3, $4, $5) :: $1 }
+   | formals_list COMMA typ ID { ($3, $4) :: $1 } 
+
+/***** statement *****/
+stmt_block:
+   LBRACE stmt_list LBRACE { Block(List.rev $2) }
+
+stmt_list:
+   // cannot be empty, at lease return;
+   { [] }
+   | stmt_list stmt { $2 :: $1 }
 
 stmt:
-	  expr SEMI 							  {Expr $1}
-	| RETURN expr SEMI 						  {Return $2}
+   expr SEMI {Expr $1}
+   | RETURN expr_opt SEMI 				      {Return $2}
 	| IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
   	| IF LPAREN expr RPAREN stmt ELSE stmt    { If($3, $5, $7)        }
   	| FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt
                       	                      { For($3, $5, $7, $9)   }
-												
-
-typ:
-    INT    { Int   }
-  | FLOAT  { Float }  
-  | CHAR   { Char  }
-  | STRING { String}  
-  | BOOL   { Bool  }
-
-
-
-unit:
-	
-
-
+expr_opt:
+    /* nothing */ { Noexpr }
+  	| expr          { $1 }
 
 expr:
-	  INT_LITERAL 									{ Lit(IntLit($1)) }
-	| FLOAT_LITERAL 								{ Lit(FloatLit($1)) }
+   INT_LITERAL 									{ Lit(IntLit($1)) }
+   | FLOAT_LITERAL 								{ Lit(FloatLit($1)) }
 	| CHAR_LITERAL 									{ Lit(CharLit($1)) }
 	| STRING_LITERAL 								{ Lit(StringLit($1)) }
 	| BOOL_LITERAL 									{ Lit(BoolLit($1)) }
@@ -93,12 +203,53 @@ expr:
 	| expr GEQ expr 								{ Binop($1, Geq, $3) }
 	| expr AND expr 								{ Binop($1, And, $3) }
 	| expr OR expr 									{ Binop($1, Or, $3) }
-	| MINUS expr %prec NEG 					{ Unop(Neg, $2) }
-	| NOT expr 											{ Unop(Not, $2) }
-	| ID ASSIGN expr 								{ Assign($1, $3) }
-	| LPAREN expr RPAREN 						{ $2 }
-	| ID LPAREN actuals_opt RPAREN 	{ Call($1, $3) }
-	| 
+	| MINUS expr %prec NEG 							{ Unop(Neg, $2) }
+	| NOT expr 										{ Unop(Not, $2) }
+	| ID ASN expr 								{ Assign($1, $3) }
+	| LPAREN expr RPAREN 							{ $2 }
+   /* | '{m} = 10*12/10*'{mm} | */
+   | BAR PRIME LBRACE UID RBRACE ASN cexpr TIMES unit BAR SEMI {UnitAssign($4, $7, $9)}
+   /* int x = 10/2 */
+   | typ ID ASN expr                   { Init_Assign($1,$2,$4) }
+   /* int '{m} = 10 */
+   | typ unit ID ASN expr              {Init_Assign_Unit($1, $2, $3, $5)}
+
+
+cexpr:
+	 cexpr TIMES  cexpr 	{ Binop($1, Mul, $3) }
+	| cexpr DIVIDE cexpr  	{ Binop($1, Div, $3) }
+	| cexpr POW cexpr 		{ Binop($1, Pow, $3) }
+	| LPAREN cexpr RPAREN 	{ $2 }
+	| MINUS expr %prec NEG 	{ Unop(Neg, $2) }
+	| INT_LITERAL 		 	{ Lit(IntLit($1)) }
+	| FLOAT_LITERAL 	 	{ Lit(FloatLit($1)) }
+/***********************************/
+
+/**************** equal_decl *******************/
+equa_decl:
+ /* equa <equation_name> (args) {statement}*/
+   EQUA ID formals_block LBRACE equa_stmt RBRACE 
+   {{
+      equa_identifier = $2;
+      equa_formals = List.rev $3;
+      equa_stmt = $5; 
+   }}
+
+equa_stmt:
+   { [] }
+   /* x*y/c-1 = ms+o-y+1 */
+   | equa_expr ASN equa_expr { equa($1, $3)}
+
+equa_expr:
+   INT_LITERAL 									{ Lit(IntLit($1)) }
+   | FLOAT_LITERAL 								{ Lit(FloatLit($1)) } 
+   | ID 														{ Id($1) }
+	| equa_expr PLUS equa_expr 								{ Binop($1, Add, $3) }
+	| equa_expr MINUS equa_expr 							{ Binop($1, Sub, $3) }
+	| equa_expr TIMES equa_expr 							{ Binop($1, Mult, $3) }
+	| equa_expr DIVIDE equa_expr 							{ Binop($1, Div, $3) }
+	| equa_expr POW equa_expr 								{ Binop($1, Pow, $3) }
+/***********************************/
 
 
 
