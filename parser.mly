@@ -12,11 +12,12 @@
 %token IF ELSE NOELSE FOR RETURN 
 %token TYPEOF PRINT INT2FLOAT FLOAT2INT CEIL FLOOR
 %token METER SEC KGRAM AMP CMETER HERTZ GRAM NEWTON NOUNIT
+%token SIZEOF TYPEOF PRINT
 
 /* literals */
 %token <string> ID /* identifier for variable and function names */
 %token <string> UID 
-%token <string> UONE // ?
+%token <string> UONE // base unit
 %token <int> INT_LITERAL
 %token <float> FLOAT_LITERAL
 %token <char> CHAR_LITERAL
@@ -89,6 +90,9 @@ typ:
   | CHAR   { Char  }
   | STRING { String}
   | BOOL   { Bool  }
+
+lst_type:
+    typ LBRACK RBRACK { ArrayType($1) }
 
 unit:
 	PRIME LBRACE uexpr RBRACE { $3 } 
@@ -213,7 +217,45 @@ expr:
    | typ ID ASN expr                   { Init_Assign($1,$2,$4) }
    /* int '{m} = 10 */
    | typ unit ID ASN expr              {Init_Assign_Unit($1, $2, $3, $5)}
+   /* List operation */
+   /* init */
+   /* int[] x = [] */
+   /* int[] unit x = [1,2,3,6,6] */
+   | lst_type unit ID ASN lst_block          {ListInitUnit($1, $2, $3, $5)}
+   | lst_type ID ASN lst_block               {ListInit($1, $2, $4)}
+   /* assign */
+   /* x[1] = 10 */
+   | ID LBRACK INT_LITERAL RBRACK ASN prime  { ListEleAssign($1, $3, $6) }
+   /* access */
+   /* y = x[1] */
+   | ID LBRACK INT_LITERAL RBRACK {ListAccess($1, $3)}
+   /* sizeof(x) */
+   | SIZEOF LPAREN ID RPAREN {SizeOf($3)}
+   /* typeof(x) */
+   | TYPEOF LPAREN ID RPAREN {TypeOf($3)}
+   /* print(expr) */
+   | PRINT LPAREN expr RPAREN {Print($3)}
 
+lst_block:
+  LBRACK opt_lst RBRACK {$2}
+
+opt_lst:
+   {[]}
+   | lst {$1}
+
+lst:
+   prime {[$1]}
+   | lst COMMA prime {$3 :: $1}
+
+prime:
+      INT_LITERAL 									{ Lit(IntLit($1)) }
+   | FLOAT_LITERAL 								{ Lit(FloatLit($1)) }
+	| CHAR_LITERAL 									{ Lit(CharLit($1)) }
+	| STRING_LITERAL 								{ Lit(StringLit($1)) }
+	| BOOL_LITERAL 									{ Lit(BoolLit($1)) }
+	| TRUE 													{ BoolLit(true) }
+	| FALSE 												{ BoolLit(false) } 
+   
 
 cexpr:
 	 cexpr TIMES  cexpr 	{ Binop($1, Mul, $3) }
@@ -250,20 +292,3 @@ equa_expr:
 	| equa_expr DIVIDE equa_expr 							{ Binop($1, Div, $3) }
 	| equa_expr POW equa_expr 								{ Binop($1, Pow, $3) }
 /***********************************/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
