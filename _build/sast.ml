@@ -4,14 +4,16 @@ open Ast
 
 type sexpr = typ * sx
 and sx =
-    SLiteral of int
-  | SFliteral of string
+  SIntLit of int
+  | SFloatLit of string
+  | SCharLit of char
   | SBoolLit of bool
+  | SStringLit of string
   | SId of string
   | SBinop of sexpr * op * sexpr
   | SUnop of uop * sexpr
   | SAssign of string * sexpr
-  | SCall of string * sexpr list
+  | SFunctionCall of string * sexpr list
   | SNoexpr
 
 type sstmt =
@@ -20,14 +22,12 @@ type sstmt =
   | SReturn of sexpr
   | SIf of sexpr * sstmt * sstmt
   | SFor of sexpr * sexpr * sexpr * sstmt
-  | SWhile of sexpr * sstmt
 
 type sfunc_decl = {
-    styp : typ;
-    sfname : string;
-    sformals : bind list;
-    slocals : bind list;
-    sbody : sstmt list;
+    sreturn_type : typ;
+    sfunc_identifier : string;
+    sfunc_formals : bind list;
+    sfunc_stmts: sstmt list;
   }
 
 type sprogram = bind list * sfunc_decl list
@@ -36,16 +36,18 @@ type sprogram = bind list * sfunc_decl list
 
 let rec string_of_sexpr (t, e) =
   "(" ^ string_of_typ t ^ " : " ^ (match e with
-    SLiteral(l) -> string_of_int l
+    SIntLit(l) -> string_of_int l
   | SBoolLit(true) -> "true"
   | SBoolLit(false) -> "false"
-  | SFliteral(l) -> l
+  | SFloatLit(l) -> l
+  | SStringLit(l) -> l
+  | SCharLit(l) -> "a"
   | SId(s) -> s
   | SBinop(e1, o, e2) ->
       string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
   | SUnop(o, e) -> string_of_uop o ^ string_of_sexpr e
   | SAssign(v, e) -> v ^ " = " ^ string_of_sexpr e
-  | SCall(f, el) ->
+  | SFunctionCall(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
   | SNoexpr -> ""
 				  ) ^ ")"				     
@@ -62,14 +64,12 @@ let rec string_of_sstmt = function
   | SFor(e1, e2, e3, s) ->
       "for (" ^ string_of_sexpr e1  ^ " ; " ^ string_of_sexpr e2 ^ " ; " ^
       string_of_sexpr e3  ^ ") " ^ string_of_sstmt s
-  | SWhile(e, s) -> "while (" ^ string_of_sexpr e ^ ") " ^ string_of_sstmt s
 
 let string_of_sfdecl fdecl =
-  string_of_typ fdecl.styp ^ " " ^
-  fdecl.sfname ^ "(" ^ String.concat ", " (List.map snd fdecl.sformals) ^
+  string_of_typ fdecl.sreturn_type ^ " " ^
+  fdecl.sfunc_identifier ^ "(" ^ String.concat ", " (List.map snd fdecl.sfunc_formals) ^
   ")\n{\n" ^
-  String.concat "" (List.map string_of_vdecl fdecl.slocals) ^
-  String.concat "" (List.map string_of_sstmt fdecl.sbody) ^
+  String.concat "" (List.map string_of_sstmt fdecl.sfunc_stmts) ^
   "}\n"
 
 let string_of_sprogram (vars, funcs) =

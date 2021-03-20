@@ -8,7 +8,7 @@
 %token EQ NEQ LT GT LEQ GEQ AND OR 
 // TRUE FALSE 
 %token ASN 
-%token BOOL INT FLOAT CHAR STRING INTARR FLOATARR
+%token BOOL INT FLOAT CHAR STRING INTARR FLOATARR VOID
 %token FUNC EQUA
 %token IF ELSE NOELSE FOR RETURN 
 %token METER SEC KGRAM AMP CMETER HERTZ GRAM NEWTON 
@@ -91,7 +91,7 @@ typ:
   | CHAR   { Char  }
   | STRING { String}
   | BOOL   { Bool  }
-
+  | VOID   { Void  }
 // lst_type:
 //     typ LBRACK RBRACK { ArrayType($1) }
 

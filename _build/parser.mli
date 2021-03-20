@@ -33,6 +33,7 @@ type token =
   | STRING
   | INTARR
   | FLOATARR
+  | VOID
   | FUNC
   | EQUA
   | IF
