@@ -7,16 +7,17 @@ module StringMap = Map.Make(String)
 
 (* Semantic checking of the AST. Returns an SAST if successful,
    throws an exception if something is wrong.
-
+ 
    Check each global variable, then check each function *)
-
+ 
 let check (globals, functions) =
 
+  (* SCIC does not have void type, which here only check for duplicate names *)
   (* Verify a list of bindings has no void types or duplicate names *)
   let check_binds (kind : string) (binds : bind list) =
     List.iter (function
-	(Void, b) -> raise (Failure ("illegal void " ^ kind ^ " " ^ b))
-      | _ -> ()) binds;
+    (Void, b) -> raise (Failure ("illegal void " ^ kind ^ " " ^ b)) 
+    | _ -> ()) binds;
     let rec dups = function
         [] -> ()
       |	((_,n1) :: (_,n2) :: _) when n1 = n2 ->
@@ -31,13 +32,14 @@ let check (globals, functions) =
 
   (**** Check functions ****)
 
+  (* Here is what for hello world : build-in function*)
   (* Collect function declarations for built-in functions: no bodies *)
   let built_in_decls = 
     let add_bind map (name, ty) = StringMap.add name {
-      typ = Void;
-      fname = name; 
-      formals = [(ty, "x")];
-      locals = []; body = [] } map
+      return_type = Void;
+      func_identifier = name; 
+      func_formals = [(ty, "x")];
+      func_stmts = [] } map
     in List.fold_left add_bind StringMap.empty [ ("print", Int);
 			                         ("printb", Bool);
 			                         ("printf", Float);
@@ -46,10 +48,10 @@ let check (globals, functions) =
 
   (* Add function name to symbol table *)
   let add_func map fd = 
-    let built_in_err = "function " ^ fd.fname ^ " may not be defined"
-    and dup_err = "duplicate function " ^ fd.fname
+    let built_in_err = "function " ^ fd.func_identifier ^ " may not be defined"
+    and dup_err = "duplicate function " ^ fd.func_identifier
     and make_err er = raise (Failure er)
-    and n = fd.fname (* Name of the function *)
+    and n = fd.func_identifier (* Name of the function *)
     in match fd with (* No duplicate functions or redefinitions of built-ins *)
          _ when StringMap.mem n built_in_decls -> make_err built_in_err
        | _ when StringMap.mem n map -> make_err dup_err  
@@ -70,8 +72,7 @@ let check (globals, functions) =
 
   let check_function func =
     (* Make sure no formals or locals are void or duplicates *)
-    check_binds "formal" func.formals;
-    check_binds "local" func.locals;
+    check_binds "formal" func.func_formals;
 
     (* Raise an exception if the given rvalue type cannot be assigned to
        the given lvalue type *)
@@ -79,9 +80,10 @@ let check (globals, functions) =
        if lvaluet = rvaluet then lvaluet else raise (Failure err)
     in   
 
+    
     (* Build local symbol table of variables for this function *)
     let symbols = List.fold_left (fun m (ty, name) -> StringMap.add name ty m)
-	                StringMap.empty (globals @ func.formals @ func.locals )
+	                StringMap.empty (globals @ func.func_formals )
     in
 
     (* Return a variable from our local symbol table *)
@@ -92,9 +94,11 @@ let check (globals, functions) =
 
     (* Return a semantically-checked expression, i.e., with a type *)
     let rec expr = function
-        Literal  l -> (Int, SLiteral l)
-      | Fliteral l -> (Float, SFliteral l)
+        IntLit  l -> (Int, SIntLit l)
+      | FloatLit l -> (Float, SFloatLit l)
       | BoolLit l  -> (Bool, SBoolLit l)
+      | CharLit l -> (Char, SCharLit l)
+      | StringLit l -> (String, SStringLit l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
       | Assign(var, e) as ex -> 
@@ -130,9 +134,9 @@ let check (globals, functions) =
                        string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
                        string_of_typ t2 ^ " in " ^ string_of_expr e))
           in (ty, SBinop((t1, e1'), op, (t2, e2')))
-      | Call(fname, args) as call -> 
+      | FunctionCall(fname, args) as call -> 
           let fd = find_func fname in
-          let param_length = List.length fd.formals in
+          let param_length = List.length fd.func_formals in
           if List.length args != param_length then
             raise (Failure ("expecting " ^ string_of_int param_length ^ 
                             " arguments in " ^ string_of_expr call))
@@ -142,8 +146,8 @@ let check (globals, functions) =
               " expected " ^ string_of_typ ft ^ " in " ^ string_of_expr e
             in (check_assign ft et err, e')
           in 
-          let args' = List.map2 check_call fd.formals args
-          in (fd.typ, SCall(fname, args'))
+          let args' = List.map2 check_call fd.func_formals args
+          in (fd.return_type, SFunctionCall(fname, args'))
     in
 
     let check_bool_expr e = 
@@ -158,12 +162,11 @@ let check (globals, functions) =
       | If(p, b1, b2) -> SIf(check_bool_expr p, check_stmt b1, check_stmt b2)
       | For(e1, e2, e3, st) ->
 	  SFor(expr e1, check_bool_expr e2, expr e3, check_stmt st)
-      | While(p, s) -> SWhile(check_bool_expr p, check_stmt s)
       | Return e -> let (t, e') = expr e in
-        if t = func.typ then SReturn (t, e') 
+        if t = func.return_type then SReturn (t, e') 
         else raise (
 	  Failure ("return gives " ^ string_of_typ t ^ " expected " ^
-		   string_of_typ func.typ ^ " in " ^ string_of_expr e))
+		   string_of_typ func.return_type ^ " in " ^ string_of_expr e))
 	    
 	    (* A block is correct if each statement is correct and nothing
 	       follows any Return statement.  Nested blocks are flattened. *)
@@ -177,11 +180,10 @@ let check (globals, functions) =
           in SBlock(check_stmt_list sl)
 
     in (* body of check_function *)
-    { styp = func.typ;
-      sfname = func.fname;
-      sformals = func.formals;
-      slocals  = func.locals;
-      sbody = match check_stmt (Block func.body) with
+    { sreturn_type = func.return_type;
+    sfunc_identifier = func.func_identifier;
+    sfunc_formals = func.func_formals;
+    sfunc_stmts = match check_stmt (Block func.func_stmts) with
 	SBlock(sl) -> sl
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
     }
