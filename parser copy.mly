@@ -11,7 +11,7 @@
 %token BOOL INT FLOAT CHAR STRING INTARR FLOATARR
 %token FUNC EQUA
 %token IF ELSE NOELSE FOR RETURN 
-%token METER SEC KGRAM AMP CMETER HERTZ GRAM NEWTON 
+%token METER SEC KGRAM AMP CMETER HERTZ GRAM NEWTON NOUNIT
 
 
 /* literals */
@@ -19,7 +19,7 @@
 %token <string> UID 
 %token <string> UONE // base unit
 %token <int> INT_LITERAL
-%token <string> FLOAT_LITERAL
+%token <float> FLOAT_LITERAL
 %token <char> CHAR_LITERAL
 %token <string> STRING_LITERAL
 %token <bool> BOOL_LITERAL
@@ -28,7 +28,6 @@
 /* precedence */
 %nonassoc NOELSE
 %nonassoc ELSE
-%nonassoc NOUNIT
 
 %right ASN
 %left OR
@@ -61,22 +60,22 @@ decls:
 						funcs = $1.funcs;
 						equas = $1.equas;
                   }}
-   // | decls unit_decl {{
-   //                vars = $1.vars;
-   //                units = $2 :: $1.units;
-   //                funcs = $1.funcs;
-   //                equas = $1.equas;
-  	// 				}}
+   | decls unit_decl {{
+                  vars = $1.vars;
+                  units = $2 :: $1.units;
+                  funcs = $1.funcs;
+                  equas = $1.equas;
+  					}}
    | decls func_decl {{vars = $1.vars;
 						units = $1.units;
 						funcs = $2 :: $1.funcs;
 						equas = $1.equas;}}
-   // | decls equa_decl {{
-	// 					vars = $1.vars;
-	// 					units = $1.units;
-	// 					funcs = $1.funcs;
-	// 					equas = $2 :: $1.equas;
-  	// 				}}           
+   | decls equa_decl {{
+						vars = $1.vars;
+						units = $1.units;
+						funcs = $1.funcs;
+						equas = $2 :: $1.equas;
+  					}}           
 
 /*************** var_decl ********************/
 var_decl: 
@@ -132,18 +131,19 @@ typ:
 /**************** func_decl *******************/
 func_decl:
    /* <type> <unit> func <function_name> (args) {statement}*/
-   // typ unit FUNC ID formals_block stmt_block {{
-   //    return_type       = $1;
-	// 	return_unit       = $2;
-	// 	func_identifier   = $4;
-	// 	func_formals      = List.rev $5;
-	// 	func_stmts        = List.rev $6
-   // }}
-   typ FUNC ID formals_block stmt_block {{
+   typ unit FUNC ID formals_block stmt_block {{
       return_type       = $1;
+		return_unit       = $2;
+		func_identifier   = $4;
+		func_formals      = List.rev $5;
+		func_stmts        = List.rev $6
+   }}
+   |typ FUNC ID formals_block stmt_block {{
+      return_type       = $1;
+		return_unit		   = NOUNIT;
 		func_identifier   = $3;
 		func_formals      = List.rev $4;
-		func_stmts        = List.rev $5;
+		func_stmts        = List.rev $5
    }}
 
 /***** args *****/
@@ -160,9 +160,9 @@ opt_formals:
 
 
 formals_list:
-   // typ unit ID { [($1, $2, $3)] }
-    typ ID { [($1, $2)] }
-   // | formals_list COMMA typ unit ID { ($3, $4, $5) :: $1 }
+   typ unit ID { [($1, $2, $3)] }
+   | typ ID { [($1, $2)] }
+   | formals_list COMMA typ unit ID { ($3, $4, $5) :: $1 }
    | formals_list COMMA typ ID { ($3, $4) :: $1 } 
 
 /***** statement *****/
@@ -213,23 +213,23 @@ expr:
    /* function call */ /* equation call */
    | ID LPAREN args RPAREN             {FunctionCall($1, $3)} 
    /* | '{m} = 10*12/10*'{mm} | */ 
-   // | BAR PRIME LBRACE UID RBRACE ASN cexpr TIMES unit BAR SEMI {UnitAssign($4, $7, $9)}
-   // /* int x = 10/2 */
-   // | typ ID ASN expr                   { Init_Assign($1,$2,$4) }
-   // /* int '{m} = 10 */
-   // | typ unit ID ASN expr              {Init_Assign_Unit($1, $2, $3, $5)}
-   // /* List operation */
-   // /* init */
-   // /* int[] x = [] */
-   // /* int[] unit x = [1,2,3,6,6] */
-   // | lst_type unit ID ASN lst_block          {ListInitUnit($1, $2, $3, $5)}
-   // | lst_type ID ASN lst_block               {ListInit($1, $2, $4)}
-   // /* assign */
-   // /* x[1] = 10 */
-   // | ID LBRACK INT_LITERAL RBRACK ASN prime  { ListEleAssign($1, $3, $6) }
-   // /* access */
-   // /* y = x[1] */
-   // | ID LBRACK INT_LITERAL RBRACK {ListAccess($1, $3)}
+   | BAR PRIME LBRACE UID RBRACE ASN cexpr TIMES unit BAR SEMI {UnitAssign($4, $7, $9)}
+   /* int x = 10/2 */
+   | typ ID ASN expr                   { Init_Assign($1,$2,$4) }
+   /* int '{m} = 10 */
+   | typ unit ID ASN expr              {Init_Assign_Unit($1, $2, $3, $5)}
+   /* List operation */
+   /* init */
+   /* int[] x = [] */
+   /* int[] unit x = [1,2,3,6,6] */
+   | lst_type unit ID ASN lst_block          {ListInitUnit($1, $2, $3, $5)}
+   | lst_type ID ASN lst_block               {ListInit($1, $2, $4)}
+   /* assign */
+   /* x[1] = 10 */
+   | ID LBRACK INT_LITERAL RBRACK ASN prime  { ListEleAssign($1, $3, $6) }
+   /* access */
+   /* y = x[1] */
+   | ID LBRACK INT_LITERAL RBRACK {ListAccess($1, $3)}
 
 
 
@@ -267,14 +267,14 @@ expr:
 // 	| TRUE 													{ BoolLit(true) }
 // 	| FALSE 												{ BoolLit(false) } 
 
-// cexpr:
-// 	 cexpr TIMES  cexpr 	{ Binop($1, Mul, $3) }
-// 	| cexpr DIVIDE cexpr  	{ Binop($1, Div, $3) }
-// 	| cexpr POW cexpr 		{ Binop($1, Pow, $3) }
-// 	| LPAREN cexpr RPAREN 	{ $2 }
-// 	| MINUS expr %prec NEG 	{ Unop(Neg, $2) }
-// 	| INT_LITERAL 		 	{ Lit(IntLit($1)) }
-// 	| FLOAT_LITERAL 	 	{ Lit(FloatLit($1)) }
+cexpr:
+	 cexpr TIMES  cexpr 	{ Binop($1, Mul, $3) }
+	| cexpr DIVIDE cexpr  	{ Binop($1, Div, $3) }
+	| cexpr POW cexpr 		{ Binop($1, Pow, $3) }
+	| LPAREN cexpr RPAREN 	{ $2 }
+	| MINUS expr %prec NEG 	{ Unop(Neg, $2) }
+	| INT_LITERAL 		 	{ Lit(IntLit($1)) }
+	| FLOAT_LITERAL 	 	{ Lit(FloatLit($1)) }
 
 
 args:
@@ -305,27 +305,27 @@ args_list:
 /***********************************/
 
 /**************** equal_decl *******************/
-// equa_decl:
-//  /* equa <equation_name> (args) {statement}*/
-//    EQUA ID formals_block LBRACE equa_stmt RBRACE 
-//    {{
-//       equa_identifier = $2;
-//       equa_formals = List.rev $3;
-//       equa_stmt = $5; 
-//    }}
+equa_decl:
+ /* equa <equation_name> (args) {statement}*/
+   EQUA ID formals_block LBRACE equa_stmt RBRACE 
+   {{
+      equa_identifier = $2;
+      equa_formals = List.rev $3;
+      equa_stmt = $5; 
+   }}
 
-// equa_stmt:
-//    { [] }
-//    /* x*y/c-1 = ms+o-y+1 */
-//    | equa_expr ASN equa_expr { equa($1, $3)}
+equa_stmt:
+   { [] }
+   /* x*y/c-1 = ms+o-y+1 */
+   | equa_expr ASN equa_expr { equa($1, $3)}
 
-// equa_expr:
-//    INT_LITERAL 									      { IntLit($1) }
-//    | FLOAT_LITERAL 								      { FloatLit($1) } 
-//    | ID 														{ Id($1) }
-// 	| equa_expr PLUS equa_expr 							{ Binop($1, Add, $3) }
-// 	| equa_expr MINUS equa_expr 							{ Binop($1, Sub, $3) }
-// 	| equa_expr TIMES equa_expr 							{ Binop($1, Mult, $3) }
-// 	| equa_expr DIVIDE equa_expr 							{ Binop($1, Div, $3) }
-// 	| equa_expr POW equa_expr 								{ Binop($1, Pow, $3) }
+equa_expr:
+   INT_LITERAL 									{ Lit(IntLit($1)) }
+   | FLOAT_LITERAL 								{ Lit(FloatLit($1)) } 
+   | ID 														{ Id($1) }
+	| equa_expr PLUS equa_expr 								{ Binop($1, Add, $3) }
+	| equa_expr MINUS equa_expr 							{ Binop($1, Sub, $3) }
+	| equa_expr TIMES equa_expr 							{ Binop($1, Mult, $3) }
+	| equa_expr DIVIDE equa_expr 							{ Binop($1, Div, $3) }
+	| equa_expr POW equa_expr 								{ Binop($1, Pow, $3) }
 /***********************************/

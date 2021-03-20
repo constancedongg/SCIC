@@ -23,8 +23,6 @@ type token =
   | GT
   | LEQ
   | GEQ
-  | TRUE
-  | FALSE
   | AND
   | OR
   | ASN
@@ -42,12 +40,6 @@ type token =
   | NOELSE
   | FOR
   | RETURN
-  | TYPEOF
-  | PRINT
-  | INT2FLOAT
-  | FLOAT2INT
-  | CEIL
-  | FLOOR
   | METER
   | SEC
   | KGRAM
@@ -56,12 +48,11 @@ type token =
   | HERTZ
   | GRAM
   | NEWTON
-  | NOUNIT
   | ID of (string)
   | UID of (string)
   | UONE of (string)
   | INT_LITERAL of (int)
-  | FLOAT_LITERAL of (float)
+  | FLOAT_LITERAL of (string)
   | CHAR_LITERAL of (char)
   | STRING_LITERAL of (string)
   | BOOL_LITERAL of (bool)
