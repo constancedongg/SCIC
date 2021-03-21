@@ -1,7 +1,7 @@
 (* Abstract Syntax Tree and functions for printing it *)
 
 type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
-          And | Or
+          And | Or | Pow
 
 type uop = Neg | Not
 
@@ -37,6 +37,8 @@ type func_decl = {
     func_formals : bind list;
     func_stmts : stmt list;
   }
+
+
 
 type program = bind list * func_decl list
 

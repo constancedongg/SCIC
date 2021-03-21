@@ -54,23 +54,15 @@ program:
    decls EOF { $1 }
 
 decls:
-   /* nothing */   { {vars=[]; units=[]; funcs=[]; equas=[];} }
-   | decls var_decl {{
-                  vars = $2 :: $1.vars;
-						units = $1.units;
-						funcs = $1.funcs;
-						equas = $1.equas;
-                  }}
+   /* nothing */   { ([], [])  }
+   | decls var_decl {(($2 :: fst $1), snd $1)}
    // | decls unit_decl {{
    //                vars = $1.vars;
    //                units = $2 :: $1.units;
    //                funcs = $1.funcs;
    //                equas = $1.equas;
   	// 				}}
-   | decls func_decl {{vars = $1.vars;
-						units = $1.units;
-						funcs = $2 :: $1.funcs;
-						equas = $1.equas;}}
+   | decls func_decl {(fst $1, ($2 :: snd $1))}
    // | decls equa_decl {{
 	// 					vars = $1.vars;
 	// 					units = $1.units;
@@ -83,7 +75,7 @@ var_decl:
    /* <type> <unit> <variable_name>; int '{m} x; */
    // typ unit ID SEMI {($1, $2, $3)}
    /* <type> <variable_name>; int x; */
-   typ ID SEMI { ($1, NOUNIT, $2) }
+   typ ID SEMI { ($1, $2) }
 
 typ:
    INT     { Int   }
@@ -139,11 +131,11 @@ func_decl:
 	// 	func_formals      = List.rev $5;
 	// 	func_stmts        = List.rev $6
    // }}
-   typ FUNC ID formals_block stmt_block {{
+   typ FUNC ID formals_block LBRACE stmt_list RBRACE{{
       return_type       = $1;
 		func_identifier   = $3;
 		func_formals      = List.rev $4;
-		func_stmts        = List.rev $5;
+		func_stmts        = List.rev $6;
    }}
 
 /***** args *****/
@@ -166,8 +158,6 @@ formals_list:
    | formals_list COMMA typ ID { ($3, $4) :: $1 } 
 
 /***** statement *****/
-stmt_block:
-   LBRACE stmt_list LBRACE { Block(List.rev $2) }
 
 stmt_list:
    // cannot be empty, at lease return;
@@ -177,6 +167,7 @@ stmt_list:
 stmt:
    expr SEMI {Expr $1}
    | RETURN expr_opt SEMI 				      {Return $2}
+   | LBRACE stmt_list RBRACE              { Block(List.rev $2) }
 	| IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
   	| IF LPAREN expr RPAREN stmt ELSE stmt    { If($3, $5, $7)        }
   	| FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt
@@ -197,7 +188,7 @@ expr:
 	| expr MINUS expr 							{ Binop($1, Sub, $3) }
 	| expr TIMES expr 							{ Binop($1, Mult, $3) }
 	| expr DIVIDE expr 							{ Binop($1, Div, $3) }
-	| expr POW expr 								{ Binop($1, Pow, $3) }
+	// | expr POW expr 								{ Binop($1, Pow, $3) }
 	| expr EQ expr 									{ Binop($1, Equal, $3) }
 	| expr NEQ expr 								{ Binop($1, Neq, $3) }
 	| expr LT expr 									{ Binop($1, Less, $3) }
