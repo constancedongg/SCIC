@@ -8,7 +8,7 @@
  * an executable
  */
 
-int main()
+int func main()
 {
   printbig(72); /* H */
   printbig(69); /* E */

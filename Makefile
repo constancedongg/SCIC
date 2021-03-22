@@ -36,23 +36,23 @@ printbig : printbig.c
 # Building the tarball
 
 TESTS = \
-  printbig helloWorld
+  printbig helloWorld printftest printb
 
-FAILS = \
-  assign1 assign2 assign3 dead1 dead2 expr1 expr2 expr3 float1 float2 \
-  for1 for2 for3 for4 for5 func1 func2 func3 func4 func5 func6 func7 \
-  func8 func9 global1 global2 if1 if2 if3 nomain printbig printb print \
-  return1 return2 while1 while2
+# FAILS = \
+#   assign1 assign2 assign3 dead1 dead2 expr1 expr2 expr3 float1 float2 \
+#   for1 for2 for3 for4 for5 func1 func2 func3 func4 func5 func6 func7 \
+#   func8 func9 global1 global2 if1 if2 if3 nomain printbig print \
+#   return1 return2 while1 while2
 
 TESTFILES = $(TESTS:%=test-%.mc) $(TESTS:%=test-%.out) \
-	    $(FAILS:%=fail-%.mc) $(FAILS:%=fail-%.err)
+	    # $(FAILS:%=fail-%.mc) $(FAILS:%=fail-%.err)
 
-TARFILES = ast.ml sast.ml codegen.ml Makefile _tags microc.ml microcparse.mly \
+TARFILES = ast.ml sast.ml codegen.ml Makefile _tags scic.ml parser.mly \
 	README scanner.mll semant.ml testall.sh \
 	printbig.c arcade-font.pbm font2c \
 	Dockerfile \
 	$(TESTFILES:%=tests/%) 
 
 microc.tar.gz : $(TARFILES)
-	cd .. && tar czf microc/microc.tar.gz \
-		$(TARFILES:%=microc/%)
+	cd .. && tar czf SCIC/SCIC.tar.gz \
+		$(TARFILES:%=SCIC/%)

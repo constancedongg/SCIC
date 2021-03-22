@@ -131,17 +131,17 @@ func_decl:
 	// 	func_formals      = List.rev $5;
 	// 	func_stmts        = List.rev $6
    // }}
-   typ FUNC ID formals_block LBRACE stmt_list RBRACE{{
+   typ FUNC ID LPAREN opt_formals RPAREN LBRACE stmt_list RBRACE{{
       return_type       = $1;
 		func_identifier   = $3;
-		func_formals      = List.rev $4;
-		func_stmts        = List.rev $6;
+		func_formals      = List.rev $5;
+		func_stmts        = List.rev $8;
    }}
 
 /***** args *****/
-formals_block:
-   /* ...(args)... */ 
-   LPAREN opt_formals RPAREN { $2 }
+// formals_block:
+//    /* ...(args)... */ 
+//    LPAREN opt_formals RPAREN { $2 }
 
 opt_formals:
    /* nothing */ {[]}

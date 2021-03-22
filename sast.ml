@@ -66,7 +66,7 @@ let rec string_of_sstmt = function
       string_of_sexpr e3  ^ ") " ^ string_of_sstmt s
 
 let string_of_sfdecl fdecl =
-  string_of_typ fdecl.sreturn_type ^ " " ^
+  string_of_typ fdecl.sreturn_type ^ " " ^ "func " ^ 
   fdecl.sfunc_identifier ^ "(" ^ String.concat ", " (List.map snd fdecl.sfunc_formals) ^
   ")\n{\n" ^
   String.concat "" (List.map string_of_sstmt fdecl.sfunc_stmts) ^
