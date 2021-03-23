@@ -1,6 +1,6 @@
 ### Starting build.
 # Target: scic.ml.depends, tags: { package(llvm), package(llvm.analysis), warn(+a-4), extension:ml, file:scic.ml, ocaml, ocamldep, quiet, traverse }
-ocamlfind ocamldep -package llvm -package llvm.analysis -modules scic.ml > scic.ml.depends
+ocamlfind ocamldep -package llvm -package llvm.analysis -modules scic.ml > scic.ml.depends # cached
 # Target: ast.ml.depends, tags: { package(llvm), package(llvm.analysis), warn(+a-4), extension:ml, file:ast.ml, ocaml, ocamldep, quiet, traverse }
 ocamlfind ocamldep -package llvm -package llvm.analysis -modules ast.ml > ast.ml.depends
 # Target: codegen.ml.depends, tags: { package(llvm), package(llvm.analysis), warn(+a-4), extension:ml, file:codegen.ml, ocaml, ocamldep, quiet, traverse }
