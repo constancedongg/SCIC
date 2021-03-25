@@ -50,6 +50,7 @@ let string_of_op = function
   | Mult -> "*"
   | Div -> "/"
   | Equal -> "=="
+  | Pow -> "^"
   | Neq -> "!="
   | Less -> "<"
   | Leq -> "<="
