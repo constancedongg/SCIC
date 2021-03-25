@@ -67,7 +67,7 @@ let rec string_of_expr = function
   | FloatLit(l) -> l
   | BoolLit(true) -> "true"
   | BoolLit(false) -> "false"
-  | CharLit(l) -> "a"
+  | CharLit(l) -> l
   | StringLit(l) -> l
   | Id(s) -> s
   | Binop(e1, o, e2) ->
