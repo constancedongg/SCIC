@@ -60,3 +60,8 @@ diff -b test-printftest.out tests/test-printftest.out > test-printftest.diff
 ./scic.native < tests/fail-floatBinop.mc 2> fail-floatBinop.err >> testall.log
 diff -b fail-floatBinop.err tests/fail-floatBinop.err > fail-floatBinop.diff
 ###### SUCCESS
+
+###### Testing fail-intPow
+./scic.native < tests/fail-intPow.mc 2> fail-intPow.err >> testall.log
+diff -b fail-intPow.err tests/fail-intPow.err > fail-intPow.diff
+###### SUCCESS
