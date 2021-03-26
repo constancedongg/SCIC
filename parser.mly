@@ -2,7 +2,6 @@
 
 /* punctuations, unary operators, binary arithmetic, binary relational + logical, assignment 
    data type, declaration, statement, library function */
-%token SIQUT DOQUT
 %token SEMI COLASN COMMA LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE BAR PRIME
 %token NEG NOT
 %token PLUS MINUS TIMES DIVIDE POW 
@@ -181,8 +180,8 @@ expr_opt:
 expr:
    INT_LITERAL 									{ IntLit($1) }
    | FLOAT_LITERAL 								{ FloatLit($1) }
-	| SIQUT CHAR_LITERAL SIQUT 				{ CharLit($2) }
-	| DOQUT STRING_LITERAL DOQUT				{ StringLit($2) }
+	| CHAR_LITERAL	                        { CharLit($1) }
+	| STRING_LITERAL				            { StringLit($1) }
 	| BOOL_LITERAL 									{ BoolLit($1) }
 	| ID 														{ Id($1) }
 	| expr PLUS expr 								{ Binop($1, Add, $3) }

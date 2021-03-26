@@ -13,7 +13,7 @@ type bind = typ * string
 type expr =
   IntLit of int
   | FloatLit of string
-  | CharLit of char
+  | CharLit of char 
   | StringLit of string
   | BoolLit of bool
   | Id of string
@@ -67,7 +67,7 @@ let rec string_of_expr = function
   | FloatLit(l) -> l
   | BoolLit(true) -> "true"
   | BoolLit(false) -> "false"
-  | CharLit(l) -> "a"
+  | CharLit(c) -> c
   | StringLit(l) -> l
   | Id(s) -> s
   | Binop(e1, o, e2) ->

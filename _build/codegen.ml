@@ -28,8 +28,8 @@ let translate (globals, functions) =
 
   (* Get types from the context *)
   let i32_t      = L.i32_type    context
-  and i8_t     = L.i8_type     context
-  and i1_t     = L.i1_type     context
+  and i8_t       = L.i8_type     context
+  and i1_t       = L.i1_type     context
   and float_t    = L.double_type context
   and void_t     = L.void_type   context 
   and string_t   = L.pointer_type (L.i8_type context)
@@ -164,11 +164,13 @@ let translate (globals, functions) =
 	    A.Neg when t = A.Float -> L.build_fneg 
 	  | A.Neg                  -> L.build_neg
           | A.Not                  -> L.build_not) e' "tmp" builder
-      | SFunctionCall ("print", [e]) | SFunctionCall ("printb", [e]) ->
+      | SFunctionCall ("print", [e])  |SFunctionCall ("printb", [e]) ->
 	  L.build_call printf_func [| int_format_str ; (expr builder e) |]
 	    "printf" builder
       | SFunctionCall ("printbig", [e]) ->
 	  L.build_call printbig_func [| (expr builder e) |] "printbig" builder
+      | SFunctionCall("printc", [e]) -> 
+    L.build_call printc_func [| (expr builder e) |] "printc" builder 
       | SFunctionCall ("printf", [e]) -> 
 	  L.build_call printf_func [| float_format_str ; (expr builder e) |]
 	    "printf" builder

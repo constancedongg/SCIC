@@ -1,4 +1,4 @@
 int func main() {
-    printc("c");
+    print('w');
     return 0;
 }
