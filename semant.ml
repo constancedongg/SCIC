@@ -40,7 +40,7 @@ let check (globals, functions) =
       func_identifier = name; 
       func_formals = [(ty, "x")];
       func_stmts = [] } map
-    in List.fold_left add_bind StringMap.empty [ ("print", Int);
+    in List.fold_left add_bind StringMap.empty [ ("printc", Char); ("print", Int);
 			                         ("printb", Bool);
 			                         ("printf", Float);
 			                         ("printbig", Int) ]

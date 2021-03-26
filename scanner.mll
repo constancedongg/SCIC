@@ -12,6 +12,8 @@ rule token = parse
 | ')'      { RPAREN }
 | '{'      { LBRACE }
 | '}'      { RBRACE }
+| '''      { SIQUT  }
+| '"'      { DOQUT  }
 | '['      { LBRACK }
 | ']'      { RBRACK }
 | '|'      { BAR }
