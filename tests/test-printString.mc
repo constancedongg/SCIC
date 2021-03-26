@@ -1,4 +1,3 @@
 int func main() {
-    print("Hello World");
-    return 0;
+    printl("Hello World");
 }

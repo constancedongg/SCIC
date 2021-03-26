@@ -4,7 +4,7 @@
    data type, declaration, statement, library function */
 %token SEMI COLASN COMMA LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE BAR PRIME
 %token NEG NOT
-%token PLUS MINUS TIMES DIVIDE POW 
+%token PLUS MINUS TIMES DIVIDE 
 %token EQ NEQ LT GT LEQ GEQ AND OR 
 // TRUE FALSE 
 %token ASN 

@@ -169,8 +169,8 @@ let translate (globals, functions) =
 	    "printf" builder
       | SFunctionCall ("printbig", [e]) ->
 	  L.build_call printbig_func [| (expr builder e) |] "printbig" builder
-      | SFunctionCall("printc", [e]) -> 
-    L.build_call printc_func [| (expr builder e) |] "printc" builder 
+      (* | SFunctionCall("printc", [e]) -> 
+    L.build_call printc_func [| (expr builder e) |] "printc" builder  *)
       | SFunctionCall ("printf", [e]) -> 
 	  L.build_call printf_func [| float_format_str ; (expr builder e) |]
 	    "printf" builder
