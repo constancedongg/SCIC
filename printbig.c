@@ -48,6 +48,9 @@ static const char font[] = {
   0x61, 0x71, 0x79, 0x5d, 0x4f, 0x47, 0x43, 0x00
 };
 
+void printc(char c){
+  
+}
 void printbig(int c)
 {
   int index = 0;

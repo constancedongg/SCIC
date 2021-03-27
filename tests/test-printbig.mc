@@ -21,5 +21,4 @@ int func main()
   printbig(82); /* R */
   printbig(76); /* L */
   printbig(68); /* D */
-  return 0;
 }

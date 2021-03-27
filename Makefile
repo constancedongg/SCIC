@@ -36,7 +36,7 @@ printbig : printbig.c
 # Building the tarball
 
 TESTS = \
-  printbig helloWorld printftest printb
+  printbig helloWorld printftest printb printC
 
 FAILS = \
 #   assign1 assign2 assign3 dead1 dead2 expr1 expr2 expr3 float1 float2 \
