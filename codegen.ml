@@ -42,7 +42,6 @@ let translate (globals, functions) =
     | A.Bool  -> i1_t
     | A.Float -> float_t
     | A.Void  -> void_t
-    | A.Char  -> i8_t
     | A.String -> string_t
   in
 
@@ -56,7 +55,7 @@ let translate (globals, functions) =
     List.fold_left global_var StringMap.empty globals in
 
   let printf_t : L.lltype = 
-      L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
+      L.var_arg_function_type string_t [| L.pointer_type i8_t |] in
   let printf_func : L.llvalue = 
       L.declare_function "printf" printf_t the_module in
 
@@ -82,7 +81,8 @@ let translate (globals, functions) =
     let builder = L.builder_at_end context (L.entry_block the_function) in
 
     let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder
-    and float_format_str = L.build_global_stringptr "%g\n" "fmt" builder in
+    and float_format_str = L.build_global_stringptr "%g\n" "fmt" builder
+    and str_format_str = L.build_global_stringptr "%s\n" "fmt" builder in
 
     (* Construct the function's "locals": formal arguments and locally
        declared variables.  Allocate each on the stack, initialize their
@@ -118,7 +118,6 @@ let translate (globals, functions) =
 	  SIntLit i  -> L.const_int i32_t i
       | SBoolLit b  -> L.const_int i1_t (if b then 1 else 0)
       | SFloatLit l -> L.const_float_of_string float_t l
-      | SCharLit c -> L.const_int i8_t (C.code c)
       | SStringLit s -> L.build_global_stringptr s "str" builder
       | SNoexpr     -> L.const_int i32_t 0
       | SId s       -> L.build_load (lookup s) s builder
@@ -172,7 +171,7 @@ let translate (globals, functions) =
       (* | SFunctionCall("printc", [e]) -> 
     L.build_call printc_func [| (expr builder e) |] "printc" builder  *)
       | SFunctionCall ("printf", [e]) -> 
-	  L.build_call printf_func [| float_format_str ; (expr builder e) |]
+	  L.build_call printf_func [| str_format_str ; (expr builder e) |]
 	    "printf" builder
       | SFunctionCall (f, args) ->
          let (fdef, fdecl) = StringMap.find f function_decls in

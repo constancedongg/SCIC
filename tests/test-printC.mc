@@ -1,3 +1,3 @@
 int func main() {
-    printc('w');
+    printf("w");
 }

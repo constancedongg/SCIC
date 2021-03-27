@@ -42,7 +42,7 @@ let check (globals, functions) =
       func_stmts = [] } map
     in List.fold_left add_bind StringMap.empty [ ("printc", Char); ("print", Int); ("printl", String);
 			                         ("printb", Bool);
-			                         ("printf", Float);
+			                         ("printf", String);
 			                         ("printbig", Int) ]
   in
 
@@ -97,7 +97,6 @@ let check (globals, functions) =
         IntLit  l -> (Int, SIntLit l)
       | FloatLit l -> (Float, SFloatLit l)
       | BoolLit l  -> (Bool, SBoolLit l)
-      | CharLit l -> (Char, SCharLit l)
       | StringLit l -> (String, SStringLit l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)

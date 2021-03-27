@@ -20,7 +20,6 @@
 %token <string> UONE // base unit
 %token <int> INT_LITERAL
 %token <string> FLOAT_LITERAL
-%token <char> CHAR_LITERAL
 %token <string> STRING_LITERAL
 %token <bool> BOOL_LITERAL
 %token EOF
@@ -180,7 +179,6 @@ expr_opt:
 expr:
    INT_LITERAL 									{ IntLit($1) }
    | FLOAT_LITERAL 								{ FloatLit($1) }
-	| CHAR_LITERAL	                        { CharLit($1) }
 	| STRING_LITERAL				            { StringLit($1) }
 	| BOOL_LITERAL 									{ BoolLit($1) }
 	| ID 														{ Id($1) }

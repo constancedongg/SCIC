@@ -1,3 +1,3 @@
 int func main() {
-    printl("Hello World");
+    printf("Hello World");
 }
