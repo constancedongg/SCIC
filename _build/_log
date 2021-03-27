@@ -1,0 +1,92 @@
+### Starting build.
+# Target: scic.ml.depends, tags: { package(llvm), package(llvm.analysis), warn(+a-4), extension:ml, file:scic.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package llvm -package llvm.analysis -modules scic.ml > scic.ml.depends # cached
+# Target: ast.ml.depends, tags: { package(llvm), package(llvm.analysis), warn(+a-4), extension:ml, file:ast.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package llvm -package llvm.analysis -modules ast.ml > ast.ml.depends # cached
+# Target: ast.cmo, tags: { package(llvm), package(llvm.analysis), warn(+a-4), byte, compile, extension:cmo, extension:ml, file:ast.cmo, file:ast.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -w +a-4 -package llvm -package llvm.analysis -o ast.cmo ast.ml # cached
+# Target: codegen.ml.depends, tags: { package(llvm), package(llvm.analysis), warn(+a-4), extension:ml, file:codegen.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package llvm -package llvm.analysis -modules codegen.ml > codegen.ml.depends
+# Target: sast.ml.depends, tags: { package(llvm), package(llvm.analysis), warn(+a-4), extension:ml, file:sast.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package llvm -package llvm.analysis -modules sast.ml > sast.ml.depends # cached
+# Target: sast.cmo, tags: { package(llvm), package(llvm.analysis), warn(+a-4), byte, compile, extension:cmo, extension:ml, file:sast.cmo, file:sast.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -w +a-4 -package llvm -package llvm.analysis -o sast.cmo sast.ml # cached
+# Target: parser.mly, tags: { package(llvm), package(llvm.analysis), warn(+a-4), extension:mly, file:parser.mly, infer, ocaml, ocamlyacc, parser, quiet, traverse }
+ocamlyacc parser.mly # cached
+# Target: parser.mli.depends, tags: { package(llvm), package(llvm.analysis), warn(+a-4), extension:mli, file:parser.mli, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package llvm -package llvm.analysis -modules parser.mli > parser.mli.depends # cached
+# Target: parser.cmi, tags: { package(llvm), package(llvm.analysis), warn(+a-4), byte, compile, extension:mli, file:parser.mli, interf, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -w +a-4 -package llvm -package llvm.analysis -o parser.cmi parser.mli # cached
+# Target: scanner.mll, tags: { package(llvm), package(llvm.analysis), warn(+a-4), extension:mll, file:scanner.mll, lexer, ocaml, ocamllex, quiet, traverse }
+ocamllex.opt -q scanner.mll # cached
+# Target: scanner.ml.depends, tags: { package(llvm), package(llvm.analysis), warn(+a-4), extension:ml, file:scanner.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package llvm -package llvm.analysis -modules scanner.ml > scanner.ml.depends # cached
+# Target: semant.ml.depends, tags: { package(llvm), package(llvm.analysis), warn(+a-4), extension:ml, file:semant.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package llvm -package llvm.analysis -modules semant.ml > semant.ml.depends # cached
+# Target: codegen.cmo, tags: { package(llvm), package(llvm.analysis), warn(+a-4), byte, compile, extension:cmo, extension:ml, file:codegen.cmo, file:codegen.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -w +a-4 -package llvm -package llvm.analysis -o codegen.cmo codegen.ml
++ ocamlfind ocamlc -c -w +a-4 -package llvm -package llvm.analysis -o codegen.cmo codegen.ml
+File "codegen.ml", lines 203-226, characters 27-35:
+203 | ...........................function
+204 | 	SBlock sl -> List.fold_left stmt builder sl
+205 |       | SExpr e -> ignore(expr builder e); builder 
+206 |       | SReturn e -> ignore(match fdecl.sreturn_type with
+207 |                               (* Special "return nothing" instr *)
+...
+223 | 	   build_br_merge;
+224 | 
+225 | 	 ignore(L.build_cond_br bool_val then_bb else_bb builder);
+226 | 	 L.builder_at_end context merge_bb
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+SFor (_, _, _, _)
+# Target: scanner.cmo, tags: { package(llvm), package(llvm.analysis), warn(+a-4), byte, compile, extension:cmo, extension:ml, file:scanner.cmo, file:scanner.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -w +a-4 -package llvm -package llvm.analysis -o scanner.cmo scanner.ml
+# Target: semant.cmo, tags: { package(llvm), package(llvm.analysis), warn(+a-4), byte, compile, extension:cmo, extension:ml, file:semant.cmo, file:semant.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -w +a-4 -package llvm -package llvm.analysis -o semant.cmo semant.ml
+# Target: scic.cmo, tags: { package(llvm), package(llvm.analysis), warn(+a-4), byte, compile, extension:cmo, extension:ml, file:scic.cmo, file:scic.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -w +a-4 -package llvm -package llvm.analysis -o scic.cmo scic.ml
+# Target: ast.cmx, tags: { package(llvm), package(llvm.analysis), warn(+a-4), compile, extension:cmx, extension:ml, file:ast.cmx, file:ast.ml, implem, native, ocaml, quiet, traverse }
+ocamlfind ocamlopt -c -w +a-4 -package llvm -package llvm.analysis -o ast.cmx ast.ml
++ ocamlfind ocamlopt -c -w +a-4 -package llvm -package llvm.analysis -o ast.cmx ast.ml
+File "ast.ml", line 71, characters 11-14:
+71 |   | CharLit(l) -> "a"
+                ^^^
+Warning 27: unused variable l.
+# Target: sast.cmx, tags: { package(llvm), package(llvm.analysis), warn(+a-4), compile, extension:cmx, extension:ml, file:sast.cmx, file:sast.ml, implem, native, ocaml, quiet, traverse }
+ocamlfind ocamlopt -c -w +a-4 -package llvm -package llvm.analysis -o sast.cmx sast.ml
++ ocamlfind ocamlopt -c -w +a-4 -package llvm -package llvm.analysis -o sast.cmx sast.ml
+File "sast.ml", line 44, characters 12-15:
+44 |   | SCharLit(l) -> "a"
+                 ^^^
+Warning 27: unused variable l.
+# Target: parser.ml.depends, tags: { package(llvm), package(llvm.analysis), warn(+a-4), extension:ml, file:parser.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package llvm -package llvm.analysis -modules parser.ml > parser.ml.depends
+# Target: parser.cmx, tags: { package(llvm), package(llvm.analysis), warn(+a-4), compile, extension:cmx, extension:ml, file:parser.cmx, file:parser.ml, implem, native, ocaml, quiet, traverse }
+ocamlfind ocamlopt -c -w +a-4 -package llvm -package llvm.analysis -o parser.cmx parser.ml
+# Target: codegen.cmx, tags: { package(llvm), package(llvm.analysis), warn(+a-4), compile, extension:cmx, extension:ml, file:codegen.cmx, file:codegen.ml, implem, native, ocaml, quiet, traverse }
+ocamlfind ocamlopt -c -w +a-4 -package llvm -package llvm.analysis -o codegen.cmx codegen.ml
++ ocamlfind ocamlopt -c -w +a-4 -package llvm -package llvm.analysis -o codegen.cmx codegen.ml
+File "codegen.ml", lines 203-226, characters 27-35:
+203 | ...........................function
+204 | 	SBlock sl -> List.fold_left stmt builder sl
+205 |       | SExpr e -> ignore(expr builder e); builder 
+206 |       | SReturn e -> ignore(match fdecl.sreturn_type with
+207 |                               (* Special "return nothing" instr *)
+...
+223 | 	   build_br_merge;
+224 | 
+225 | 	 ignore(L.build_cond_br bool_val then_bb else_bb builder);
+226 | 	 L.builder_at_end context merge_bb
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+SFor (_, _, _, _)
+# Target: scanner.cmx, tags: { package(llvm), package(llvm.analysis), warn(+a-4), compile, extension:cmx, extension:ml, file:scanner.cmx, file:scanner.ml, implem, native, ocaml, quiet, traverse }
+ocamlfind ocamlopt -c -w +a-4 -package llvm -package llvm.analysis -o scanner.cmx scanner.ml
+# Target: semant.cmx, tags: { package(llvm), package(llvm.analysis), warn(+a-4), compile, extension:cmx, extension:ml, file:semant.cmx, file:semant.ml, implem, native, ocaml, quiet, traverse }
+ocamlfind ocamlopt -c -w +a-4 -package llvm -package llvm.analysis -o semant.cmx semant.ml
+# Target: scic.cmx, tags: { package(llvm), package(llvm.analysis), warn(+a-4), compile, extension:cmx, extension:ml, file:scic.cmx, file:scic.ml, implem, native, ocaml, quiet, traverse }
+ocamlfind ocamlopt -c -w +a-4 -package llvm -package llvm.analysis -o scic.cmx scic.ml
+# Target: scic.native, tags: { package(llvm), package(llvm.analysis), warn(+a-4), dont_link_with, extension:native, file:scic.native, link, native, ocaml, program, quiet, traverse }
+ocamlfind ocamlopt -linkpkg -package llvm -package llvm.analysis ast.cmx sast.cmx codegen.cmx parser.cmx scanner.cmx semant.cmx scic.cmx -o scic.native
+# Compilation successful.

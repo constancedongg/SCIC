@@ -123,40 +123,46 @@ let translate (globals, functions) =
       | SId s       -> L.build_load (lookup s) s builder
       | SAssign (s, e) -> let e' = expr builder e in
                           ignore(L.build_store e' (lookup s) builder); e'
-      | SBinop ((A.Float,_ ) as e1, op, e2) ->
+      | SBinop (e1, op, ((A.Float, _) as e2)) ->
 	  let e1' = expr builder e1
 	  and e2' = expr builder e2 in
 	  (match op with 
-	    A.Add     -> L.build_fadd
-	  | A.Sub     -> L.build_fsub
-	  | A.Mult    -> L.build_fmul
-	  | A.Div     -> L.build_fdiv 
-	  | A.Equal   -> L.build_fcmp L.Fcmp.Oeq
-	  | A.Neq     -> L.build_fcmp L.Fcmp.One
-	  | A.Less    -> L.build_fcmp L.Fcmp.Olt
-	  | A.Leq     -> L.build_fcmp L.Fcmp.Ole
-	  | A.Greater -> L.build_fcmp L.Fcmp.Ogt
-	  | A.Geq     -> L.build_fcmp L.Fcmp.Oge
+	    A.Add     -> L.build_fadd e1' e2' "tmp" builder
+	  | A.Sub     -> L.build_fsub e1' e2' "tmp" builder
+	  | A.Mult    -> L.build_fmul e1' e2' "tmp" builder
+	  | A.Div     -> L.build_fdiv e1' e2' "tmp" builder
+    | A.Pow     -> 
+      let pow32 = L.declare_function "llvm.pow.f64" (L.function_type float_t [|float_t;float_t;|]) the_module in
+      L.build_call pow32 [| e1'; e2' |] "pow32" builder
+	  | A.Equal   -> L.build_fcmp L.Fcmp.Oeq e1' e2' "tmp" builder
+	  | A.Neq     -> L.build_fcmp L.Fcmp.One e1' e2' "tmp" builder
+	  | A.Less    -> L.build_fcmp L.Fcmp.Olt e1' e2' "tmp" builder
+	  | A.Leq     -> L.build_fcmp L.Fcmp.Ole e1' e2' "tmp" builder
+	  | A.Greater -> L.build_fcmp L.Fcmp.Ogt e1' e2' "tmp" builder
+	  | A.Geq     -> L.build_fcmp L.Fcmp.Oge e1' e2' "tmp" builder
 	  | A.And | A.Or ->
 	      raise (Failure "internal error: semant should have rejected and/or on float")
-	  ) e1' e2' "tmp" builder
+	  ) 
       | SBinop (e1, op, e2) ->
 	  let e1' = expr builder e1
 	  and e2' = expr builder e2 in
 	  (match op with
-	    A.Add     -> L.build_add
-	  | A.Sub     -> L.build_sub
-	  | A.Mult    -> L.build_mul
-    | A.Div     -> L.build_sdiv
-	  | A.And     -> L.build_and
-	  | A.Or      -> L.build_or
-	  | A.Equal   -> L.build_icmp L.Icmp.Eq
-	  | A.Neq     -> L.build_icmp L.Icmp.Ne
-	  | A.Less    -> L.build_icmp L.Icmp.Slt
-	  | A.Leq     -> L.build_icmp L.Icmp.Sle
-	  | A.Greater -> L.build_icmp L.Icmp.Sgt
-	  | A.Geq     -> L.build_icmp L.Icmp.Sge
-	  ) e1' e2' "tmp" builder
+	    A.Add     -> L.build_add e1' e2' "tmp" builder
+	  | A.Sub     -> L.build_sub e1' e2' "tmp" builder
+	  | A.Mult    -> L.build_mul e1' e2' "tmp" builder
+    | A.Div     -> L.build_sdiv e1' e2' "tmp" builder
+    | A.Pow     -> 
+      let powi32 = L.declare_function "llvm.powi.f64" (L.function_type float_t [|float_t;i32_t;|]) the_module in
+    L.build_call powi32 [| e1'; e2' |] "powi32" builder
+	  | A.And     -> L.build_and e1' e2' "tmp" builder
+	  | A.Or      -> L.build_or e1' e2' "tmp" builder
+	  | A.Equal   -> L.build_icmp L.Icmp.Eq e1' e2' "tmp" builder
+	  | A.Neq     -> L.build_icmp L.Icmp.Ne e1' e2' "tmp" builder
+	  | A.Less    -> L.build_icmp L.Icmp.Slt e1' e2' "tmp" builder
+	  | A.Leq     -> L.build_icmp L.Icmp.Sle e1' e2' "tmp" builder
+	  | A.Greater -> L.build_icmp L.Icmp.Sgt e1' e2' "tmp" builder
+	  | A.Geq     -> L.build_icmp L.Icmp.Sge e1' e2' "tmp" builder
+	  ) 
       | SUnop(op, ((t, _) as e)) ->
           let e' = expr builder e in
 	  (match op with
