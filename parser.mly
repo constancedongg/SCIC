@@ -84,6 +84,9 @@ typ:
   | STRING { String}
   | BOOL   { Bool  }
   | VOID   { Void  }
+  | INTARR { IntArr}
+  | FLOATARR {FloatArr}
+
 // lst_type:
 //     typ LBRACK RBRACK { ArrayType($1) }
 
@@ -201,6 +204,10 @@ expr:
 	| NOT expr 										{ Unop(Not, $2) }
 	| ID ASN expr 								{ Assign($1, $3) }
 	| LPAREN expr RPAREN 							{ $2 }
+
+   | LBRACK opt_lst RBRACK                   { Array($2)}
+   | ID LBRACK INT_LITERAL RBRACK            { ArrayAccess($1, $3)}
+
    /* function call */ /* equation call */
    | ID LPAREN args RPAREN             {FunctionCall($1, $3)} 
    /* | '{m} = 10*12/10*'{mm} | */ 
@@ -228,20 +235,20 @@ expr:
 // lst_block:
 //   LBRACK opt_lst RBRACK {$2}
 
-// opt_lst:
-//    {[]}
-//    | lst { List.rev $1 }
+opt_lst:
+   {[]}
+   | lst { List.rev $1 }
 
-// lst:
-//    prime {[$1]}
-//    | lst COMMA prime {$3 :: $1}
+lst:
+   expr {[$1]}
+   | lst COMMA prime {$3 :: $1}
 
-// prime:
-//       INT_LITERAL 									{ IntLit($1) }
-//    | FLOAT_LITERAL 								{ FloatLit($1) }
-// 	| CHAR_LITERAL 									{ CharLit($1) }
-// 	| STRING_LITERAL 								{ StringLit($1) }
-// 	| BOOL_LITERAL 									{ BoolLit($1) }
+prime:
+      INT_LITERAL 									{ IntLit($1) }
+   | FLOAT_LITERAL 								{ FloatLit($1) }
+	// | CHAR_LITERAL 									{ CharLit($1) }
+	// | STRING_LITERAL 								{ StringLit($1) }
+	// | BOOL_LITERAL 									{ BoolLit($1) }
    
 // primeNwithid:
 //    ID {Id($1)}

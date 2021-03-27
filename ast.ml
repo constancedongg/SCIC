@@ -1,11 +1,11 @@
 (* Abstract Syntax Tree and functions for printing it *)
 
 type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
-          And | Or | Pow
+          And | Or  (*| Pow *)
 
 type uop = Neg | Not
 
-type typ = Int | Bool | Float | Char | String | Void 
+type typ = Int | Bool | Float | Char | String | Void | IntArr | FloatArr
 
 type bind = typ * string
 
@@ -21,6 +21,8 @@ type expr =
   | Unop of uop * expr
   | Assign of string * expr
   | FunctionCall of string * expr list
+  | Array of expr list
+  | ArrayAccess of expr * expr
   | Noexpr
 
 
@@ -76,6 +78,8 @@ let rec string_of_expr = function
   | Assign(v, e) -> v ^ " = " ^ string_of_expr e
   | FunctionCall(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
+  | Array(el) -> "[" ^ String.concat ", " (List.map string_of_expr el) ^ "]"
+  | ArrayAccess(e1, e2) -> string_of_expr e1 ^ "[" ^ string_of_expr e2 ^ "]"
   | Noexpr -> ""
 
 let rec string_of_stmt = function
@@ -97,6 +101,8 @@ let string_of_typ = function
   | Char -> "char"
   | String -> "string"
   | Void -> "void"
+  | IntArr -> "int[]"
+  | FloatArr -> "float[]"
 
 let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
 

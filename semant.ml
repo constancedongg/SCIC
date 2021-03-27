@@ -5,6 +5,13 @@ open Sast
 
 module StringMap = Map.Make(String)
 
+let type_to_array = function
+  | Int -> IntArr
+  (* | Bool -> BoolArr *)
+  (* | String -> StringArr *)
+  | Float -> FloatArr
+  | _ as x -> x
+
 (* Semantic checking of the AST. Returns an SAST if successful,
    throws an exception if something is wrong.
  
@@ -91,7 +98,7 @@ let check (globals, functions) =
       try StringMap.find s symbols
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
-
+    
     (* Return a semantically-checked expression, i.e., with a type *)
     let rec expr = function
         IntLit  l -> (Int, SIntLit l)
@@ -148,6 +155,19 @@ let check (globals, functions) =
           in 
           let args' = List.map2 check_call fd.func_formals args
           in (fd.return_type, SFunctionCall(fname, args'))
+
+      | Array(x) as arr -> 
+          let rec check_arr typ out = function
+           | [] -> (type_to_array typ, SArray(List.rev out))
+           | hd::rest -> 
+             let (t, e) = expr hd in
+               if t = typ then check_arr typ (e::out) res 
+               else raise (Failure ("Error: cannot have multiple types in an array"))
+              in
+           (match x with
+               | hd :: rest -> let (t, e) = expr hd in check_arr t [e] rest
+               | [] -> raise (Failure ("Empty array initialization is not allowed"))
+             )  
     in
 
     let check_bool_expr e = 
