@@ -166,12 +166,13 @@ let translate (globals, functions) =
       | SFunctionCall ("print", [e])  |SFunctionCall ("printb", [e]) ->
 	  L.build_call printf_func [| int_format_str ; (expr builder e) |]
 	    "printf" builder
+      | SFunctionCall("printl", [e]) -> L.build_call printf_func [| str_format_str ; (expr builder e) |] "printf" builder
       | SFunctionCall ("printbig", [e]) ->
 	  L.build_call printbig_func [| (expr builder e) |] "printbig" builder
       (* | SFunctionCall("printc", [e]) -> 
     L.build_call printc_func [| (expr builder e) |] "printc" builder  *)
       | SFunctionCall ("printf", [e]) -> 
-	  L.build_call printf_func [| str_format_str ; (expr builder e) |]
+	  L.build_call printf_func [| float_format_str ; (expr builder e) |]
 	    "printf" builder
       | SFunctionCall (f, args) ->
          let (fdef, fdecl) = StringMap.find f function_decls in
