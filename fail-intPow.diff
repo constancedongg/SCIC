@@ -1,0 +1,5 @@
+1c1
+< Fatal error: exception Failure("illegal character ^")
+---
+> Fatal error: exception Failure("illegal binary operator int ^ int in 2 ^ 3")
+\ No newline at end of file
