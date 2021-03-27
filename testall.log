@@ -32,6 +32,22 @@ cc -o test-intBinopUnop.exe test-intBinopUnop.s printbig.o
 diff -b test-intBinopUnop.out tests/test-intBinopUnop.out > test-intBinopUnop.diff
 ###### SUCCESS
 
+###### Testing test-printC
+./scic.native tests/test-printC.mc > test-printC.ll
+/usr/local/opt/llvm/bin/llc -relocation-model=pic test-printC.ll > test-printC.s
+cc -o test-printC.exe test-printC.s printbig.o
+./test-printC.exe
+diff -b test-printC.out tests/test-printC.out > test-printC.diff
+###### SUCCESS
+
+###### Testing test-printString
+./scic.native tests/test-printString.mc > test-printString.ll
+/usr/local/opt/llvm/bin/llc -relocation-model=pic test-printString.ll > test-printString.s
+cc -o test-printString.exe test-printString.s printbig.o
+./test-printString.exe
+diff -b test-printString.out tests/test-printString.out > test-printString.diff
+###### SUCCESS
+
 ###### Testing test-printb
 ./scic.native tests/test-printb.mc > test-printb.ll
 /usr/local/opt/llvm/bin/llc -relocation-model=pic test-printb.ll > test-printb.s
