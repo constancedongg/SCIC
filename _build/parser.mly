@@ -79,7 +79,6 @@ var_decl:
 typ:
    INT     { Int   }
   | FLOAT  { Float }  
-  | CHAR   { Char  }
   | STRING { String}
   | BOOL   { Bool  }
   | VOID   { Void  }
@@ -198,6 +197,7 @@ expr:
 	| MINUS expr %prec NEG 							{ Unop(Neg, $2) }
 	| NOT expr 										{ Unop(Not, $2) }
 	| ID ASN expr 								{ Assign($1, $3) }
+   | typ ID ASN expr                   { DAssign($1, $2, $4) } 
 	| LPAREN expr RPAREN 							{ $2 }
    /* function call */ /* equation call */
    | ID LPAREN args RPAREN             {FunctionCall($1, $3)} 

@@ -40,7 +40,7 @@ let check (globals, functions) =
       func_identifier = name; 
       func_formals = [(ty, "x")];
       func_stmts = [] } map
-    in List.fold_left add_bind StringMap.empty [ ("printc", Char); ("print", Int); ("printl", String);
+    in List.fold_left add_bind StringMap.empty [ ("print", Int); ("printl", String);
 			                         ("printb", Bool);
                                ("printf", Float);
 			                         ("printbig", Int) ]
@@ -106,6 +106,10 @@ let check (globals, functions) =
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
             string_of_typ rt ^ " in " ^ string_of_expr ex
           in (check_assign lt rt err, SAssign(var, (rt, e')))
+      | DAssign(lt, var, e) as ex ->
+          let (rt, e') = expr e in
+          let err = "illegal assignment " ^ string_of_typ lt ^ "=" ^ string_of_typ rt ^ " in " ^ string_of_expr ex 
+          in (check_assign lt rt err, SDAssign(lt, var, (rt, e')))
       | Unop(op, e) as ex -> 
           let (t, e') = expr e in
           let ty = match op with

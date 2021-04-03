@@ -87,31 +87,31 @@ let translate (globals, functions) =
     (* Construct the function's "locals": formal arguments and locally
        declared variables.  Allocate each on the stack, initialize their
        value, if appropriate, and remember their values in the "locals" map *)
-    (* let local_vars =
-      let add_formal m (t, n) p = 
-        L.set_value_name n p;
-	let local = L.build_alloca (ltype_of_typ t) n builder in
-        ignore (L.build_store p local builder);
-	StringMap.add n local m  *)
-
-      (* Allocate space for any locally declared variables and add the
-       * resulting registers to our map *)
-      (* and add_local m (t, n) =
-	let local_var = L.build_alloca (ltype_of_typ t) n builder
-	in StringMap.add n local_var m 
-      in *)
-
-      (* let formals = List.fold_left2 add_formal StringMap.empty fdecl.sfunc_formals
-          (Array.to_list (L.params the_function)) in
-      List.fold_left add_local formals fdecl.slocals 
-    in
+        let local_vars =
+          let add_formal m (t, n) p = 
+            L.set_value_name n p;
+      let local = L.build_alloca (ltype_of_typ t) n builder in
+            ignore (L.build_store p local builder);
+      StringMap.add n local m 
+    
+          (* Allocate space for any locally declared variables and add the
+           * resulting registers to our map *)
+          (* and add_local m (t, n) =
+      let local_var = L.build_alloca (ltype_of_typ t) n builder
+      in StringMap.add n local_var m  *)
+          in
+    
+          List.fold_left2 add_formal StringMap.empty fdecl.sfunc_formals
+              (Array.to_list (L.params the_function)) 
+          (* in
+          List.fold_left add_local formals fdecl.slocals  *)
+        in
 
     (* Return the value for a variable or formal argument.
        Check local names first, then global names *)
     let lookup n = try StringMap.find n local_vars
                    with Not_found -> StringMap.find n global_vars
-    in *)
-    let lookup n = StringMap.find n global_vars in
+    in
 
     (* Construct code for an expression; return its value *)
     let rec expr builder ((_, e) : sexpr) = match e with
@@ -123,6 +123,17 @@ let translate (globals, functions) =
       | SId s       -> L.build_load (lookup s) s builder
       | SAssign (s, e) -> let e' = expr builder e in
                           ignore(L.build_store e' (lookup s) builder); e'
+      (* Two steps for declear and assign
+          1. alloca space in stack for type t with name s
+          2. suger syntax call SAssign(s, e)
+      *)
+      | SDAssign (t, s, e) -> let add_local m (t, n) = 
+                                let local_var = 
+                                  L.build_alloca (ltype_of_typ t) n builder
+                                in StringMap.add n local_var m in
+                              add_local local_vars (t, s);
+                              let e' = expr builder e in
+                                ignore(L.build_store e' (lookup s) builder); e'
       | SBinop (e1, op, ((A.Float, _) as e2)) ->
 	  let e1' = expr builder e1
 	  and e2' = expr builder e2 in
