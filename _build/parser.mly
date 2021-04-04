@@ -196,8 +196,8 @@ expr:
 	| expr OR expr 									{ Binop($1, Or, $3) }
 	| MINUS expr %prec NEG 							{ Unop(Neg, $2) }
 	| NOT expr 										{ Unop(Not, $2) }
-	| ID ASN expr 								{ Assign($1, $3) }
    | typ ID ASN expr                   { DAssign($1, $2, $4) } 
+	| ID ASN expr 								{ Assign($1, $3) }
 	| LPAREN expr RPAREN 							{ $2 }
    /* function call */ /* equation call */
    | ID LPAREN args RPAREN             {FunctionCall($1, $3)} 

@@ -100,16 +100,19 @@ let check (globals, functions) =
       | StringLit l -> (String, SStringLit l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
+      | DAssign(lt, var, e) as ex ->
+          (* must put variable name into symbols?*)
+          StringMap.add var lt symbols;
+          let (rt, e') = expr e in
+          let err = "illegal assignment " ^ string_of_typ lt ^ "=" ^ string_of_typ rt ^ " in " ^ string_of_expr ex 
+          in (check_assign lt rt err, SDAssign(lt, var, (rt, e')))
       | Assign(var, e) as ex -> 
           let lt = type_of_identifier var
           and (rt, e') = expr e in
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
             string_of_typ rt ^ " in " ^ string_of_expr ex
           in (check_assign lt rt err, SAssign(var, (rt, e')))
-      | DAssign(lt, var, e) as ex ->
-          let (rt, e') = expr e in
-          let err = "illegal assignment " ^ string_of_typ lt ^ "=" ^ string_of_typ rt ^ " in " ^ string_of_expr ex 
-          in (check_assign lt rt err, SDAssign(lt, var, (rt, e')))
+      
       | Unop(op, e) as ex -> 
           let (t, e') = expr e in
           let ty = match op with

@@ -12,7 +12,7 @@ diff -b test-boolOp.out tests/test-boolOp.out > test-boolOp.diff
 ./scic.native tests/test-floatBinop.mc > test-floatBinop.ll
 llc -relocation-model=pic test-floatBinop.ll > test-floatBinop.s
 cc -o test-floatBinop.exe test-floatBinop.s printbig.o
-/tmp/ccEDeCBc.o: In function `main':
+/tmp/ccF6zxJ2.o: In function `main':
 scic:(.text+0xb6): undefined reference to `pow'
 scic:(.text+0xd5): undefined reference to `pow'
 collect2: error: ld returned 1 exit status
