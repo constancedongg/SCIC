@@ -7,7 +7,7 @@
 %token PLUS MINUS TIMES DIVIDE POW
 %token EQ NEQ LT GT LEQ GEQ AND OR 
 // TRUE FALSE 
-%token ASN 
+%token ASN DASN
 %token BOOL INT FLOAT CHAR STRING INTARR FLOATARR VOID
 %token FUNC EQUA
 %token IF ELSE NOELSE FOR RETURN 
@@ -28,6 +28,7 @@
 %nonassoc NOELSE
 %nonassoc ELSE
 %nonassoc NOUNIT
+
 
 %right ASN
 %left OR
@@ -196,7 +197,7 @@ expr:
 	| expr OR expr 									{ Binop($1, Or, $3) }
 	| MINUS expr %prec NEG 							{ Unop(Neg, $2) }
 	| NOT expr 										{ Unop(Not, $2) }
-   | typ ID ASN expr                   { DAssign($1, $2, $4) } 
+   | typ ID ASN expr                  { DAssign($1, $2, $4) } 
 	| ID ASN expr 								{ Assign($1, $3) }
 	| LPAREN expr RPAREN 							{ $2 }
    /* function call */ /* equation call */

@@ -78,12 +78,12 @@ let check (globals, functions) =
        the given lvalue type *)
     let check_assign lvaluet rvaluet err =
        if lvaluet = rvaluet then lvaluet else raise (Failure err)
-    in   
+    in
 
     
     (* Build local symbol table of variables for this function *)
     let symbols = List.fold_left (fun m (ty, name) -> StringMap.add name ty m)
-	                StringMap.empty (globals @ func.func_formals )
+	                StringMap.empty (globals @ func.func_formals)
     in
 
     (* Return a variable from our local symbol table *)
@@ -100,12 +100,13 @@ let check (globals, functions) =
       | StringLit l -> (String, SStringLit l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
-      | DAssign(lt, var, e) as ex ->
+      | DAssign(lt, var, e) as ex -> (* y == int x = 3*)
           (* must put variable name into symbols?*)
-          StringMap.add var lt symbols;
           let (rt, e') = expr e in
-          let err = "illegal assignment " ^ string_of_typ lt ^ "=" ^ string_of_typ rt ^ " in " ^ string_of_expr ex 
-          in (check_assign lt rt err, SDAssign(lt, var, (rt, e')))
+          let err = "illegal assignment " ^ string_of_typ lt ^ "=" ^ string_of_typ rt ^ " in " ^ string_of_expr ex in
+          let lt2 = check_assign lt rt err in
+          ignore(add_symbols lt var);
+          (check_assign lt2 rt err, SDAssign(lt2, var, (rt, e')))
       | Assign(var, e) as ex -> 
           let lt = type_of_identifier var
           and (rt, e') = expr e in
