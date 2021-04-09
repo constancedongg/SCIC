@@ -12,7 +12,6 @@ and sx =
   | SBinop of sexpr * op * sexpr
   | SUnop of uop * sexpr
   | SAssign of string * sexpr
-  | SDAssign of typ * string * sexpr
   | SFunctionCall of string * sexpr list
   | SNoexpr
 
@@ -22,6 +21,7 @@ type sstmt =
   | SReturn of sexpr
   | SIf of sexpr * sstmt * sstmt
   | SFor of sexpr * sexpr * sexpr * sstmt
+  | SDAssign of typ * string * sexpr
 
 type sfunc_decl = {
     sreturn_type : typ;
@@ -46,7 +46,6 @@ let rec string_of_sexpr (t, e) =
       string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
   | SUnop(o, e) -> string_of_uop o ^ string_of_sexpr e
   | SAssign(v, e) -> v ^ " = " ^ string_of_sexpr e
-  | SDAssign(t, v, e) -> string_of_typ t ^ " " ^ v ^ " = " ^ string_of_sexpr e 
   | SFunctionCall(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
   | SNoexpr -> ""
@@ -64,6 +63,7 @@ let rec string_of_sstmt = function
   | SFor(e1, e2, e3, s) ->
       "for (" ^ string_of_sexpr e1  ^ " ; " ^ string_of_sexpr e2 ^ " ; " ^
       string_of_sexpr e3  ^ ") " ^ string_of_sstmt s
+  | SDAssign(t, v, e) -> string_of_typ t ^ " " ^ v ^ " = " ^ string_of_sexpr e ^ ";\n" 
 
 let string_of_sfdecl fdecl =
   string_of_typ fdecl.sreturn_type ^ " " ^ "func " ^ 

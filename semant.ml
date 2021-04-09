@@ -87,35 +87,35 @@ let check (globals, functions) =
     in
 
     (* Return a variable from our local symbol table *)
-    let type_of_identifier s =
-      try StringMap.find s symbols
+    let type_of_identifier s table =
+      try StringMap.find s table
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
 
     (* Return a semantically-checked expression, i.e., with a type *)
-    let rec expr = function
+    let rec expr table = function
         IntLit  l -> (Int, SIntLit l)
       | FloatLit l -> (Float, SFloatLit l)
       | BoolLit l  -> (Bool, SBoolLit l)
       | StringLit l -> (String, SStringLit l)
       | Noexpr     -> (Void, SNoexpr)
-      | Id s       -> (type_of_identifier s, SId s)
-      | DAssign(lt, var, e) as ex -> (* y == int x = 3*)
+      | Id s       -> (type_of_identifier s table, SId s)
+      (* | DAssign(lt, var, e) as ex -> (* y == int x = 3*)
           (* must put variable name into symbols?*)
+          let symbols = StringMap.add var lt symbols in
           let (rt, e') = expr e in
           let err = "illegal assignment " ^ string_of_typ lt ^ "=" ^ string_of_typ rt ^ " in " ^ string_of_expr ex in
           let lt2 = check_assign lt rt err in
-          ignore(add_symbols lt var);
-          (check_assign lt2 rt err, SDAssign(lt2, var, (rt, e')))
+          (check_assign lt2 rt err, SDAssign(lt2, var, (rt, e'))) *)
       | Assign(var, e) as ex -> 
-          let lt = type_of_identifier var
-          and (rt, e') = expr e in
+          let lt = type_of_identifier var table
+          and (rt, e') = expr table e in
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
             string_of_typ rt ^ " in " ^ string_of_expr ex
           in (check_assign lt rt err, SAssign(var, (rt, e')))
       
       | Unop(op, e) as ex -> 
-          let (t, e') = expr e in
+          let (t, e') = expr table e in
           let ty = match op with
             Neg when t = Int || t = Float -> t
           | Not when t = Bool -> Bool
@@ -124,8 +124,8 @@ let check (globals, functions) =
                                  " in " ^ string_of_expr ex))
           in (ty, SUnop(op, (t, e')))
       | Binop(e1, op, e2) as e -> 
-          let (t1, e1') = expr e1 
-          and (t2, e2') = expr e2 in
+          let (t1, e1') = expr table e1 
+          and (t2, e2') = expr table e2 in
           (* All binary operators require operands of the same type *)
           let same = t1 = t2 in
           (* Determine expression type based on operator and operand types *)
@@ -149,7 +149,7 @@ let check (globals, functions) =
             raise (Failure ("expecting " ^ string_of_int param_length ^ 
                             " arguments in " ^ string_of_expr call))
           else let check_call (ft, _) e = 
-            let (et, e') = expr e in 
+            let (et, e') = expr table e in 
             let err = "illegal argument found " ^ string_of_typ et ^
               " expected " ^ string_of_typ ft ^ " in " ^ string_of_expr e
             in (check_assign ft et err, e')
@@ -158,41 +158,55 @@ let check (globals, functions) =
           in (fd.return_type, SFunctionCall(fname, args'))
     in
 
-    let check_bool_expr e = 
-      let (t', e') = expr e
+    let check_bool_expr table e = 
+      let (t', e') = expr table e
       and err = "expected Boolean expression in " ^ string_of_expr e
       in if t' != Bool then raise (Failure err) else (t', e') 
     in
 
+    let print_map key value =
+      let new_value = string_of_typ value in
+      print_string(key ^ " " ^ new_value ^ "\n") in 
+
     (* Return a semantically-checked statement i.e. containing sexprs *)
-    let rec check_stmt = function
-        Expr e -> SExpr (expr e)
-      | If(p, b1, b2) -> SIf(check_bool_expr p, check_stmt b1, check_stmt b2)
-      | For(e1, e2, e3, st) ->
-	  SFor(expr e1, check_bool_expr e2, expr e3, check_stmt st)
-      | Return e -> let (t, e') = expr e in
-        if t = func.return_type then SReturn (t, e') 
+    let rec check_stmt table = function
+        Expr e -> (table, SExpr (expr table e))
+      | DAssign(lt, var, e) as ex -> 
+        let (rt, e') = expr table e in
+        let err = "illegal assignment" in
+        let lt2 = check_assign lt rt err in
+        let new_table = StringMap.add var lt2 table in
+        (new_table, SDAssign(lt2, var, (rt, e')))
+      | If(p, b1, b2) -> let (table_b1, st_b1) = check_stmt table b1 in
+                          let (table_b2, st_b2) = check_stmt table_b1 b2 in 
+                          (table_b2, SIf(check_bool_expr table p, st_b1, st_b2))
+      | For(e1, e2, e3, st) -> let (new_table, new_st) = check_stmt table st in 
+                                (new_table, SFor(expr new_table e1, check_bool_expr new_table e2, expr new_table e3, new_st)) 
+      | Return e -> let (t, e') = expr table e in
+        if t = func.return_type then (table, SReturn (t, e'))
         else raise (
-	  Failure ("return gives " ^ string_of_typ t ^ " expected " ^
-		   string_of_typ func.return_type ^ " in " ^ string_of_expr e))
+	        Failure ("return gives " ^ string_of_typ t ^ " expected " ^
+		      string_of_typ func.return_type ^ " in " ^ string_of_expr e))
 	    
 	    (* A block is correct if each statement is correct and nothing
 	       follows any Return statement.  Nested blocks are flattened. *)
       | Block sl -> 
-          let rec check_stmt_list = function
-              [Return _ as s] -> [check_stmt s]
+          let rec check_stmt_list table = function
+              [Return _ as s] -> let (new_table, st) = check_stmt table s in (new_table, [st])
             | Return _ :: _   -> raise (Failure "nothing may follow a return")
-            | Block sl :: ss  -> check_stmt_list (sl @ ss) (* Flatten blocks *)
-            | s :: ss         -> check_stmt s :: check_stmt_list ss
-            | []              -> []
-          in SBlock(check_stmt_list sl)
+            | Block sl :: ss  -> check_stmt_list table (sl @ ss) (* Flatten blocks *)
+            | s :: ss         -> let (one_table, one_s) = check_stmt table s in 
+                                  let (list_table, list_s) = check_stmt_list one_table ss in 
+                                    (list_table, one_s :: list_s)
+            | []              -> (table, [])
+          in let (new_table, listS) = check_stmt_list table sl in (new_table, SBlock(listS))
 
     in (* body of check_function *)
     { sreturn_type = func.return_type;
     sfunc_identifier = func.func_identifier;
     sfunc_formals = func.func_formals;
-    sfunc_stmts = match check_stmt (Block func.func_stmts) with
-	SBlock(sl) -> sl
+    sfunc_stmts = match check_stmt symbols (Block func.func_stmts) with
+	    (_, SBlock(sl)) -> sl
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
     }
-  in (globals, List.map check_function functions)
+     in (globals, List.map check_function functions)

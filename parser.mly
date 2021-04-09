@@ -165,12 +165,13 @@ stmt_list:
 
 stmt:
    expr SEMI {Expr $1}
+   | typ ID ASN expr SEMI                  { DAssign($1, $2, $4) } 
    | RETURN expr_opt SEMI 				      {Return $2}
    | LBRACE stmt_list RBRACE              { Block(List.rev $2) }
 	| IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
   	| IF LPAREN expr RPAREN stmt ELSE stmt    { If($3, $5, $7)        }
-  	| FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt
-                      	                      { For($3, $5, $7, $9)   }
+  	| FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt { For($3, $5, $7, $9)   }
+
    
 expr_opt:
     /* nothing */ { Noexpr }
@@ -197,7 +198,6 @@ expr:
 	| expr OR expr 									{ Binop($1, Or, $3) }
 	| MINUS expr %prec NEG 							{ Unop(Neg, $2) }
 	| NOT expr 										{ Unop(Not, $2) }
-   | typ ID ASN expr                  { DAssign($1, $2, $4) } 
 	| ID ASN expr 								{ Assign($1, $3) }
 	| LPAREN expr RPAREN 							{ $2 }
    /* function call */ /* equation call */
