@@ -7,7 +7,7 @@
 %token PLUS MINUS TIMES DIVIDE POW
 %token EQ NEQ LT GT LEQ GEQ AND OR 
 // TRUE FALSE 
-%token ASN 
+%token ASN DASN
 %token BOOL INT FLOAT CHAR STRING INTARR FLOATARR VOID
 %token FUNC EQUA
 %token IF ELSE NOELSE FOR RETURN 
@@ -28,6 +28,7 @@
 %nonassoc NOELSE
 %nonassoc ELSE
 %nonassoc NOUNIT
+
 
 %right ASN
 %left OR
@@ -79,7 +80,6 @@ var_decl:
 typ:
    INT     { Int   }
   | FLOAT  { Float }  
-  | CHAR   { Char  }
   | STRING { String}
   | BOOL   { Bool  }
   | VOID   { Void  }
@@ -165,12 +165,13 @@ stmt_list:
 
 stmt:
    expr SEMI {Expr $1}
+   | typ ID ASN expr SEMI                  { DAssign($1, $2, $4) } 
    | RETURN expr_opt SEMI 				      {Return $2}
    | LBRACE stmt_list RBRACE              { Block(List.rev $2) }
 	| IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
   	| IF LPAREN expr RPAREN stmt ELSE stmt    { If($3, $5, $7)        }
-  	| FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt
-                      	                      { For($3, $5, $7, $9)   }
+  	| FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt { For($3, $5, $7, $9)   }
+
    
 expr_opt:
     /* nothing */ { Noexpr }

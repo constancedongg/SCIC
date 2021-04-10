@@ -26,6 +26,7 @@ type token =
   | AND
   | OR
   | ASN
+  | DASN
   | BOOL
   | INT
   | FLOAT

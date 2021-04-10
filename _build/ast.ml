@@ -5,7 +5,7 @@ type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
 
 type uop = Neg | Not
 
-type typ = Int | Bool | Float | Char | String | Void 
+type typ = Int | Bool | Float | String | Void 
 
 type bind = typ * string
 
@@ -29,6 +29,7 @@ type stmt =
   | Return of expr
   | If of expr * stmt * stmt
   | For of expr * expr * expr * stmt
+  | DAssign of typ * string * expr
 
 type func_decl = {
     return_type : typ;
@@ -57,6 +58,13 @@ let string_of_op = function
   | Geq -> ">="
   | And -> "&&"
   | Or -> "||"
+
+  let string_of_typ = function
+  Int -> "int"
+| Bool -> "bool"
+| Float -> "float"
+| String -> "string"
+| Void -> "void"
 
 let string_of_uop = function
     Neg -> "-"
@@ -88,14 +96,7 @@ let rec string_of_stmt = function
   | For(e1, e2, e3, s) ->
       "for (" ^ string_of_expr e1  ^ " ; " ^ string_of_expr e2 ^ " ; " ^
       string_of_expr e3  ^ ") " ^ string_of_stmt s
-
-let string_of_typ = function
-    Int -> "int"
-  | Bool -> "bool"
-  | Float -> "float"
-  | Char -> "char"
-  | String -> "string"
-  | Void -> "void"
+  | DAssign(t, v, e) -> string_of_typ t ^ " " ^ v ^ " = " ^ string_of_expr e ^ ";\n"
 
 let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
 
@@ -110,3 +111,4 @@ let string_of_fdecl fdecl =
 let string_of_program (vars, funcs) =
   String.concat "" (List.map string_of_vdecl vars) ^ "\n" ^
   String.concat "\n" (List.map string_of_fdecl funcs)
+  

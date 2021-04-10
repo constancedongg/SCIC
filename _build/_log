@@ -26,34 +26,21 @@ ocamlfind ocamldep -package llvm -package llvm.analysis -modules semant.ml > sem
 # Target: codegen.cmo, tags: { package(llvm), package(llvm.analysis), warn(+a-4), byte, compile, extension:cmo, extension:ml, file:codegen.cmo, file:codegen.ml, implem, ocaml, quiet, traverse }
 ocamlfind ocamlc -c -w +a-4 -package llvm -package llvm.analysis -o codegen.cmo codegen.ml
 + ocamlfind ocamlc -c -w +a-4 -package llvm -package llvm.analysis -o codegen.cmo codegen.ml
-File "codegen.ml", lines 40-45, characters 21-26:
-40 | .....................function
-41 |       A.Int   -> i32_t
-42 |     | A.Bool  -> i1_t
-43 |     | A.Float -> float_t
-44 |     | A.Void  -> void_t
-45 |     | A.String -> string_t
-Warning 8: this pattern-matching is not exhaustive.
-Here is an example of a case that is not matched:
-Char
-File "codegen.ml", lines 205-228, characters 27-35:
-205 | ...........................function
-206 | 	SBlock sl -> List.fold_left stmt builder sl
-207 |       | SExpr e -> ignore(expr builder e); builder 
-208 |       | SReturn e -> ignore(match fdecl.sreturn_type with
-209 |                               (* Special "return nothing" instr *)
-...
-225 | 	   build_br_merge;
-226 | 
-227 | 	 ignore(L.build_cond_br bool_val then_bb else_bb builder);
-228 | 	 L.builder_at_end context merge_bb
+File "codegen.ml", line 205, characters 33-1880:
 Warning 8: this pattern-matching is not exhaustive.
 Here is an example of a case that is not matched:
 SFor (_, _, _, _)
+File "codegen.ml", line 259, characters 18-23:
+Warning 27: unused variable table.
 # Target: scanner.cmo, tags: { package(llvm), package(llvm.analysis), warn(+a-4), byte, compile, extension:cmo, extension:ml, file:scanner.cmo, file:scanner.ml, implem, ocaml, quiet, traverse }
 ocamlfind ocamlc -c -w +a-4 -package llvm -package llvm.analysis -o scanner.cmo scanner.ml
 # Target: semant.cmo, tags: { package(llvm), package(llvm.analysis), warn(+a-4), byte, compile, extension:cmo, extension:ml, file:semant.cmo, file:semant.ml, implem, ocaml, quiet, traverse }
 ocamlfind ocamlc -c -w +a-4 -package llvm -package llvm.analysis -o semant.cmo semant.ml
++ ocamlfind ocamlc -c -w +a-4 -package llvm -package llvm.analysis -o semant.cmo semant.ml
+File "semant.ml", line 167, characters 8-17:
+Warning 26: unused variable print_map.
+File "semant.ml", line 174, characters 8-33:
+Warning 26: unused variable ex.
 # Target: scic.cmo, tags: { package(llvm), package(llvm.analysis), warn(+a-4), byte, compile, extension:cmo, extension:ml, file:scic.cmo, file:scic.ml, implem, ocaml, quiet, traverse }
 ocamlfind ocamlc -c -w +a-4 -package llvm -package llvm.analysis -o scic.cmo scic.ml
 # Target: ast.cmx, tags: { package(llvm), package(llvm.analysis), warn(+a-4), compile, extension:cmx, extension:ml, file:ast.cmx, file:ast.ml, implem, native, ocaml, quiet, traverse }
@@ -67,34 +54,21 @@ ocamlfind ocamlopt -c -w +a-4 -package llvm -package llvm.analysis -o parser.cmx
 # Target: codegen.cmx, tags: { package(llvm), package(llvm.analysis), warn(+a-4), compile, extension:cmx, extension:ml, file:codegen.cmx, file:codegen.ml, implem, native, ocaml, quiet, traverse }
 ocamlfind ocamlopt -c -w +a-4 -package llvm -package llvm.analysis -o codegen.cmx codegen.ml
 + ocamlfind ocamlopt -c -w +a-4 -package llvm -package llvm.analysis -o codegen.cmx codegen.ml
-File "codegen.ml", lines 40-45, characters 21-26:
-40 | .....................function
-41 |       A.Int   -> i32_t
-42 |     | A.Bool  -> i1_t
-43 |     | A.Float -> float_t
-44 |     | A.Void  -> void_t
-45 |     | A.String -> string_t
-Warning 8: this pattern-matching is not exhaustive.
-Here is an example of a case that is not matched:
-Char
-File "codegen.ml", lines 205-228, characters 27-35:
-205 | ...........................function
-206 | 	SBlock sl -> List.fold_left stmt builder sl
-207 |       | SExpr e -> ignore(expr builder e); builder 
-208 |       | SReturn e -> ignore(match fdecl.sreturn_type with
-209 |                               (* Special "return nothing" instr *)
-...
-225 | 	   build_br_merge;
-226 | 
-227 | 	 ignore(L.build_cond_br bool_val then_bb else_bb builder);
-228 | 	 L.builder_at_end context merge_bb
+File "codegen.ml", line 205, characters 33-1880:
 Warning 8: this pattern-matching is not exhaustive.
 Here is an example of a case that is not matched:
 SFor (_, _, _, _)
+File "codegen.ml", line 259, characters 18-23:
+Warning 27: unused variable table.
 # Target: scanner.cmx, tags: { package(llvm), package(llvm.analysis), warn(+a-4), compile, extension:cmx, extension:ml, file:scanner.cmx, file:scanner.ml, implem, native, ocaml, quiet, traverse }
 ocamlfind ocamlopt -c -w +a-4 -package llvm -package llvm.analysis -o scanner.cmx scanner.ml
 # Target: semant.cmx, tags: { package(llvm), package(llvm.analysis), warn(+a-4), compile, extension:cmx, extension:ml, file:semant.cmx, file:semant.ml, implem, native, ocaml, quiet, traverse }
 ocamlfind ocamlopt -c -w +a-4 -package llvm -package llvm.analysis -o semant.cmx semant.ml
++ ocamlfind ocamlopt -c -w +a-4 -package llvm -package llvm.analysis -o semant.cmx semant.ml
+File "semant.ml", line 167, characters 8-17:
+Warning 26: unused variable print_map.
+File "semant.ml", line 174, characters 8-33:
+Warning 26: unused variable ex.
 # Target: scic.cmx, tags: { package(llvm), package(llvm.analysis), warn(+a-4), compile, extension:cmx, extension:ml, file:scic.cmx, file:scic.ml, implem, native, ocaml, quiet, traverse }
 ocamlfind ocamlopt -c -w +a-4 -package llvm -package llvm.analysis -o scic.cmx scic.ml
 # Target: scic.native, tags: { package(llvm), package(llvm.analysis), warn(+a-4), dont_link_with, extension:native, file:scic.native, link, native, ocaml, program, quiet, traverse }

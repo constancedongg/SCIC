@@ -21,6 +21,7 @@ type sstmt =
   | SReturn of sexpr
   | SIf of sexpr * sstmt * sstmt
   | SFor of sexpr * sexpr * sexpr * sstmt
+  | SDAssign of typ * string * sexpr
 
 type sfunc_decl = {
     sreturn_type : typ;
@@ -62,6 +63,7 @@ let rec string_of_sstmt = function
   | SFor(e1, e2, e3, s) ->
       "for (" ^ string_of_sexpr e1  ^ " ; " ^ string_of_sexpr e2 ^ " ; " ^
       string_of_sexpr e3  ^ ") " ^ string_of_sstmt s
+  | SDAssign(t, v, e) -> string_of_typ t ^ " " ^ v ^ " = " ^ string_of_sexpr e ^ ";\n" 
 
 let string_of_sfdecl fdecl =
   string_of_typ fdecl.sreturn_type ^ " " ^ "func " ^ 
