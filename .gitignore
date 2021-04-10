@@ -1,1 +1,6 @@
 testall.log
+.DS_Store
+_build/*
+test-*.s
+test-*.ll
+
