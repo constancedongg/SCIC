@@ -50,8 +50,7 @@ type token =
   | GRAM
   | NEWTON
   | ID of (string)
-  | UID of (string)
-  | UONE of (string)
+  | UNIT of (string)
   | INT_LITERAL of (int)
   | FLOAT_LITERAL of (string)
   | STRING_LITERAL of (string)

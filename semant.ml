@@ -4,6 +4,8 @@ open Ast
 open Sast
 
 module StringMap = Map.Make(String)
+module SS = Set.Make(String);;
+(* module Mut = Set.Make(struct type t = unt;; let compare = compare end);; *)
 
 (* Semantic checking of the AST. Returns an SAST if successful,
    throws an exception if something is wrong.
@@ -12,23 +14,32 @@ module StringMap = Map.Make(String)
  
 let check (globals, functions) =
 
+  let units = SS.empty 
+  in
+  let units =
+    List.fold_right SS.add ["m"; "cm"; "s"] units
+  in
+  
   (* SCIC does not have void type, which here only check for duplicate names *)
   (* Verify a list of bindings has no void types or duplicate names *)
-  let check_binds (kind : string) (binds : bind list) =
+  let check_ubinds (kind : string) (ubinds : ubind list) =
     List.iter (function
-    (Void, b) -> raise (Failure ("illegal void " ^ kind ^ " " ^ b)) 
-    | _ -> ()) binds;
+    (Void, _, b) -> raise (Failure ("illegal void " ^ kind ^ " " ^ b)) 
+    | _ -> ()) ubinds;
+    List.iter (function 
+    (_, u, _) ->  try ignore(SS.find u units) 
+                    with Not_found -> raise (Failure ("nonexisted unit"))
+    | _ -> ()) ubinds;
     let rec dups = function
         [] -> ()
-      |	((_,n1) :: (_,n2) :: _) when n1 = n2 ->
-	  raise (Failure ("duplicate " ^ kind ^ " " ^ n1))
+      |	((_, _, n1) :: (_,_, n2) :: _) when n1 = n2 -> raise (Failure ("duplicate " ^ kind ^ " " ^ n1))
       | _ :: t -> dups t
-    in dups (List.sort (fun (_,a) (_,b) -> compare a b) binds)
+    in dups (List.sort (fun (_,_,a) (_,_,b) -> compare a b) ubinds)
   in
 
   (**** Check global variables ****)
 
-  check_binds "global" globals;
+  check_ubinds "global" globals;
 
   (**** Check functions ****)
 
@@ -38,7 +49,7 @@ let check (globals, functions) =
     let add_bind map (name, ty) = StringMap.add name {
       return_type = Void;
       func_identifier = name; 
-      func_formals = [(ty, "x")];
+      func_formals = [(ty,"","x")];
       func_stmts = [] } map
     in List.fold_left add_bind StringMap.empty [ ("printc", Char); ("print", Int); ("printl", String);
 			                         ("printb", Bool);
@@ -70,9 +81,22 @@ let check (globals, functions) =
 
   let _ = find_func "main" in (* Ensure "main" is defined *)
 
+  (* Verify a list of bindings has no void types or duplicate names *)
+  (* let check_binds (kind : string) (binds : bind list) =
+    List.iter (function
+  (Void, b) -> raise (Failure ("illegal void " ^ kind ^ " " ^ b))
+      | _ -> ()) binds;
+    let rec dups = function
+        [] -> ()
+      |	((_,n1) :: (_,n2) :: _) when n1 = n2 ->
+    raise (Failure ("duplicate " ^ kind ^ " " ^ n1))
+      | _ :: t -> dups t
+    in dups (List.sort (fun (_,a) (_,b) -> compare a b) binds)
+  in *)
+
   let check_function func =
     (* Make sure no formals or locals are void or duplicates *)
-    check_binds "formal" func.func_formals;
+    check_ubinds "formal" func.func_formals;
 
     (* Raise an exception if the given rvalue type cannot be assigned to
        the given lvalue type *)
@@ -82,7 +106,7 @@ let check (globals, functions) =
 
     
     (* Build local symbol table of variables for this function *)
-    let symbols = List.fold_left (fun m (ty, name) -> StringMap.add name ty m)
+    let symbols = List.fold_left (fun m (ty, _, name) -> StringMap.add name ty m)
 	                StringMap.empty (globals @ func.func_formals )
     in
 
@@ -140,7 +164,7 @@ let check (globals, functions) =
           if List.length args != param_length then
             raise (Failure ("expecting " ^ string_of_int param_length ^ 
                             " arguments in " ^ string_of_expr call))
-          else let check_call (ft, _) e = 
+          else let check_call (ft,_,_) e =  (*???*)
             let (et, e') = expr e in 
             let err = "illegal argument found " ^ string_of_typ et ^
               " expected " ^ string_of_typ ft ^ " in " ^ string_of_expr e

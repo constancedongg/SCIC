@@ -1,8 +1,8 @@
-/usr/local/opt/llvm/bin/lli
+/usr/bin/lli
 
 ###### Testing test-boolOp
 ./scic.native tests/test-boolOp.mc > test-boolOp.ll
-/usr/local/opt/llvm/bin/llc -relocation-model=pic test-boolOp.ll > test-boolOp.s
+/usr/bin/llc -relocation-model=pic test-boolOp.ll > test-boolOp.s
 cc -o test-boolOp.exe test-boolOp.s printbig.o
 ./test-boolOp.exe
 diff -b test-boolOp.out tests/test-boolOp.out > test-boolOp.diff
@@ -10,15 +10,17 @@ diff -b test-boolOp.out tests/test-boolOp.out > test-boolOp.diff
 
 ###### Testing test-floatBinop
 ./scic.native tests/test-floatBinop.mc > test-floatBinop.ll
-/usr/local/opt/llvm/bin/llc -relocation-model=pic test-floatBinop.ll > test-floatBinop.s
+/usr/bin/llc -relocation-model=pic test-floatBinop.ll > test-floatBinop.s
 cc -o test-floatBinop.exe test-floatBinop.s printbig.o
-./test-floatBinop.exe
-diff -b test-floatBinop.out tests/test-floatBinop.out > test-floatBinop.diff
-###### SUCCESS
+/usr/bin/ld: /tmp/ccUVqC41.o: in function `main':
+scic:(.text+0xb6): undefined reference to `pow'
+/usr/bin/ld: scic:(.text+0xd5): undefined reference to `pow'
+collect2: error: ld returned 1 exit status
+###### FAILED
 
 ###### Testing test-helloWorld
 ./scic.native tests/test-helloWorld.mc > test-helloWorld.ll
-/usr/local/opt/llvm/bin/llc -relocation-model=pic test-helloWorld.ll > test-helloWorld.s
+/usr/bin/llc -relocation-model=pic test-helloWorld.ll > test-helloWorld.s
 cc -o test-helloWorld.exe test-helloWorld.s printbig.o
 ./test-helloWorld.exe
 diff -b test-helloWorld.out tests/test-helloWorld.out > test-helloWorld.diff
@@ -26,7 +28,7 @@ diff -b test-helloWorld.out tests/test-helloWorld.out > test-helloWorld.diff
 
 ###### Testing test-intBinopUnop
 ./scic.native tests/test-intBinopUnop.mc > test-intBinopUnop.ll
-/usr/local/opt/llvm/bin/llc -relocation-model=pic test-intBinopUnop.ll > test-intBinopUnop.s
+/usr/bin/llc -relocation-model=pic test-intBinopUnop.ll > test-intBinopUnop.s
 cc -o test-intBinopUnop.exe test-intBinopUnop.s printbig.o
 ./test-intBinopUnop.exe
 diff -b test-intBinopUnop.out tests/test-intBinopUnop.out > test-intBinopUnop.diff
@@ -34,7 +36,7 @@ diff -b test-intBinopUnop.out tests/test-intBinopUnop.out > test-intBinopUnop.di
 
 ###### Testing test-printC
 ./scic.native tests/test-printC.mc > test-printC.ll
-/usr/local/opt/llvm/bin/llc -relocation-model=pic test-printC.ll > test-printC.s
+/usr/bin/llc -relocation-model=pic test-printC.ll > test-printC.s
 cc -o test-printC.exe test-printC.s printbig.o
 ./test-printC.exe
 diff -b test-printC.out tests/test-printC.out > test-printC.diff
@@ -42,7 +44,7 @@ diff -b test-printC.out tests/test-printC.out > test-printC.diff
 
 ###### Testing test-printString
 ./scic.native tests/test-printString.mc > test-printString.ll
-/usr/local/opt/llvm/bin/llc -relocation-model=pic test-printString.ll > test-printString.s
+/usr/bin/llc -relocation-model=pic test-printString.ll > test-printString.s
 cc -o test-printString.exe test-printString.s printbig.o
 ./test-printString.exe
 diff -b test-printString.out tests/test-printString.out > test-printString.diff
@@ -50,7 +52,7 @@ diff -b test-printString.out tests/test-printString.out > test-printString.diff
 
 ###### Testing test-printb
 ./scic.native tests/test-printb.mc > test-printb.ll
-/usr/local/opt/llvm/bin/llc -relocation-model=pic test-printb.ll > test-printb.s
+/usr/bin/llc -relocation-model=pic test-printb.ll > test-printb.s
 cc -o test-printb.exe test-printb.s printbig.o
 ./test-printb.exe
 diff -b test-printb.out tests/test-printb.out > test-printb.diff
@@ -58,7 +60,7 @@ diff -b test-printb.out tests/test-printb.out > test-printb.diff
 
 ###### Testing test-printbig
 ./scic.native tests/test-printbig.mc > test-printbig.ll
-/usr/local/opt/llvm/bin/llc -relocation-model=pic test-printbig.ll > test-printbig.s
+/usr/bin/llc -relocation-model=pic test-printbig.ll > test-printbig.s
 cc -o test-printbig.exe test-printbig.s printbig.o
 ./test-printbig.exe
 diff -b test-printbig.out tests/test-printbig.out > test-printbig.diff
@@ -66,10 +68,18 @@ diff -b test-printbig.out tests/test-printbig.out > test-printbig.diff
 
 ###### Testing test-printftest
 ./scic.native tests/test-printftest.mc > test-printftest.ll
-/usr/local/opt/llvm/bin/llc -relocation-model=pic test-printftest.ll > test-printftest.s
+/usr/bin/llc -relocation-model=pic test-printftest.ll > test-printftest.s
 cc -o test-printftest.exe test-printftest.s printbig.o
 ./test-printftest.exe
 diff -b test-printftest.out tests/test-printftest.out > test-printftest.diff
+###### SUCCESS
+
+###### Testing test-unit0
+./scic.native tests/test-unit0.mc > test-unit0.ll
+/usr/bin/llc -relocation-model=pic test-unit0.ll > test-unit0.s
+cc -o test-unit0.exe test-unit0.s printbig.o
+./test-unit0.exe
+diff -b test-unit0.out tests/test-unit0.out > test-unit0.diff
 ###### SUCCESS
 
 ###### Testing fail-floatBinop

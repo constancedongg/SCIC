@@ -6,7 +6,6 @@
 %token NEG NOT
 %token PLUS MINUS TIMES DIVIDE POW
 %token EQ NEQ LT GT LEQ GEQ AND OR 
-// TRUE FALSE 
 %token ASN 
 %token BOOL INT FLOAT CHAR STRING INTARR FLOATARR VOID
 %token FUNC EQUA
@@ -16,8 +15,7 @@
 
 /* literals */
 %token <string> ID /* identifier for variable and function names */
-%token <string> UID 
-%token <string> UONE // base unit
+%token <string> UNIT 
 %token <int> INT_LITERAL
 %token <string> FLOAT_LITERAL
 %token <string> STRING_LITERAL
@@ -27,7 +25,7 @@
 /* precedence */
 %nonassoc NOELSE
 %nonassoc ELSE
-%nonassoc NOUNIT
+// %nonassoc NOUNIT
 
 %right ASN
 %left OR
@@ -55,13 +53,22 @@ program:
 decls:
    /* nothing */   { ([], [])  }
    | decls var_decl {(($2 :: fst $1), snd $1)}
+   | decls func_decl {(fst $1, ($2 :: snd $1))}
+   // | decls var_decl {{
+   //                vars = $2 :: $1.vars;
+   //                units = $1.units;
+   //                funcs = $1.funcs;
+  	// 				}}
    // | decls unit_decl {{
    //                vars = $1.vars;
    //                units = $2 :: $1.units;
    //                funcs = $1.funcs;
-   //                equas = $1.equas;
   	// 				}}
-   | decls func_decl {(fst $1, ($2 :: snd $1))}
+   // | decls func_decl {{
+   //                vars = $1.vars;
+   //                units = $1.units;
+   //                funcs = $2 ::$1.funcs;
+  	// 				}}
    // | decls equa_decl {{
 	// 					vars = $1.vars;
 	// 					units = $1.units;
@@ -74,7 +81,8 @@ var_decl:
    /* <type> <unit> <variable_name>; int '{m} x; */
    // typ unit ID SEMI {($1, $2, $3)}
    /* <type> <variable_name>; int x; */
-   typ ID SEMI { ($1, $2) }
+   typ UNIT ID SEMI { ($1, $2, $3) }
+//   |typ ID SEMI { ($1, Nounit, $2) }
 
 typ:
    INT     { Int   }
@@ -86,18 +94,30 @@ typ:
 // lst_type:
 //     typ LBRACK RBRACK { ArrayType($1) }
 
-// unit:
-// 	PRIME LBRACE uexpr RBRACE { $3 } 
+// =========== uexpr ============
+
+// unit_opt:
+//   /* no unit */ { }
+// | UNIT         { $1 }
+
+// uexpr:
+//    UNIT              { Unit($1) }
+//    // | /* nothing */   { Nounit }
+
+// uexpr_opt:
+//    /* nothing */  {Nounit}
+//  | uexpr          {$1}
+    
 
 // bi_unit:
 // 	 METER		{ Meter } /* base */
 // 	| SEC    	{ Second }
-// 	| KGRAM     { Kilogram }
-// 	| AMP      	{ Ampere }
-// 	| HERTZ  	{ Hertz } /* derived */
-// 	| CMETER    { Centimeter }
-// 	| GRAM      { Gram }
-// 	| NEWTON    { Newton }
+// 	| CMETER     { Centimeter }
+	// | AMP      	{ Ampere }
+	// | HERTZ  	{ Hertz } /* derived */
+	// | CMETER    { Centimeter }
+	// | GRAM      { Gram }
+	// | NEWTON    { Newton }
 
 // uexpr:
 // 	 UONE 							{ $1 }  // ??  |'{a} = '{1}|
@@ -130,7 +150,13 @@ func_decl:
 	// 	func_formals      = List.rev $5;
 	// 	func_stmts        = List.rev $6
    // }}
-   typ FUNC ID LPAREN opt_formals RPAREN LBRACE stmt_list RBRACE{{
+   typ UNIT FUNC ID LPAREN opt_formals RPAREN LBRACE stmt_list RBRACE{{
+      return_type       = $1;
+		func_identifier   = $4;
+		func_formals      = List.rev $6;
+		func_stmts        = List.rev $9;
+   }}
+|  typ FUNC ID LPAREN opt_formals RPAREN LBRACE stmt_list RBRACE{{
       return_type       = $1;
 		func_identifier   = $3;
 		func_formals      = List.rev $5;
@@ -151,10 +177,10 @@ opt_formals:
 
 
 formals_list:
-   // typ unit ID { [($1, $2, $3)] }
-    typ ID { [($1, $2)] }
-   // | formals_list COMMA typ unit ID { ($3, $4, $5) :: $1 }
-   | formals_list COMMA typ ID { ($3, $4) :: $1 } 
+    typ ID { [($1, "1", $2)] }
+   | typ UNIT ID { [($1, $2, $3)] }
+   | formals_list COMMA typ UNIT ID { ($3, $4, $5) :: $1 } 
+   | formals_list COMMA typ ID { ($3, "1", $4) :: $1 } 
 
 /***** statement *****/
 
@@ -165,7 +191,7 @@ stmt_list:
 
 stmt:
    expr SEMI {Expr $1}
-   | RETURN expr_opt SEMI 				      {Return $2}
+   | RETURN expr_opt SEMI 				      { Return $2 }
    | LBRACE stmt_list RBRACE              { Block(List.rev $2) }
 	| IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
   	| IF LPAREN expr RPAREN stmt ELSE stmt    { If($3, $5, $7)        }

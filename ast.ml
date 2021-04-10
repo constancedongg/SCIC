@@ -7,8 +7,16 @@ type uop = Neg | Not
 
 type typ = Int | Bool | Float | Char | String | Void 
 
+(* type unt = Meter | Centimeter | Second | Nounit *)
+
+(* type uexpr = 
+  Unit of string
+  | Nounit *)
+(* type unt = Nounit of string *)
+
 type bind = typ * string
 
+type ubind = typ * string * string 
 
 type expr =
   IntLit of int
@@ -33,13 +41,14 @@ type stmt =
 type func_decl = {
     return_type : typ;
     func_identifier : string;
-    func_formals : bind list;
+    func_formals : ubind list;
     func_stmts : stmt list;
   }
+  (* retun_unit: unt; *)
 
 
 
-type program = bind list * func_decl list
+type program = ubind list * func_decl list
 
 (* Pretty-printing functions *)
 
@@ -61,6 +70,10 @@ let string_of_op = function
 let string_of_uop = function
     Neg -> "-"
   | Not -> "!"
+
+(* let string_of_unit = function
+  Unit(s) -> s *)
+
 
 let rec string_of_expr = function
   IntLit(l) -> string_of_int l
@@ -97,11 +110,14 @@ let string_of_typ = function
   | String -> "string"
   | Void -> "void"
 
-let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
+let string_of_vdecl (t, u, id) = string_of_typ t ^ " " ^ u ^ " " ^ id ^ ";\n"
+
+let get_3_3 t = match t with 
+    (_, _, e) -> e;;
 
 let string_of_fdecl fdecl =
   string_of_typ fdecl.return_type ^ " " ^ "func " ^ 
-  fdecl.func_identifier ^ "(" ^ String.concat ", " (List.map snd fdecl.func_formals) ^
+  fdecl.func_identifier ^ "(" ^ String.concat ", " (List.map get_3_3 fdecl.func_formals) ^
   ")\n{\n" ^
   (* String.concat "" (List.map string_of_vdecl fdecl.locals) ^ *)
   String.concat "" (List.map string_of_stmt fdecl.func_stmts) ^
