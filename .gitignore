@@ -3,4 +3,4 @@ testall.log
 _build/*
 test-*.s
 test-*.ll
-
+scic.native
