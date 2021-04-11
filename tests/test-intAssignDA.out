@@ -1,5 +1,0 @@
-int x = 10;
-int func main(){
-    print(x);
-    return 0;
-}

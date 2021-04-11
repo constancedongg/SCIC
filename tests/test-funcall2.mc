@@ -1,8 +1,10 @@
-void func foo(int x) {
+int func foo(int x) {
+    x = 3;
     print(x);
+    return 10;
 }
 
 int func main() {
-    foo(2);
+    print(foo(2));
     return 0;
 }

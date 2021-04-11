@@ -10,7 +10,7 @@
 %token ASN DASN
 %token BOOL INT FLOAT CHAR STRING INTARR FLOATARR VOID
 %token FUNC EQUA
-%token IF ELSE NOELSE FOR RETURN 
+%token IF ELSE NOELSE FOR WHILE RETURN 
 %token METER SEC KGRAM AMP CMETER HERTZ GRAM NEWTON 
 
 
@@ -83,6 +83,8 @@ typ:
   | STRING { String}
   | BOOL   { Bool  }
   | VOID   { Void  }
+  | INTARR { IntArr }
+  | FLOATARR { FloatArr }
 // lst_type:
 //     typ LBRACK RBRACK { ArrayType($1) }
 
@@ -171,7 +173,7 @@ stmt:
 	| IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
   	| IF LPAREN expr RPAREN stmt ELSE stmt    { If($3, $5, $7)        }
   	| FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt { For($3, $5, $7, $9)   }
-
+   | WHILE LPAREN expr RPAREN stmt           { While($3, $5)   }
    
 expr_opt:
     /* nothing */ { Noexpr }
@@ -198,10 +200,14 @@ expr:
 	| expr OR expr 									{ Binop($1, Or, $3) }
 	| MINUS expr %prec NEG 							{ Unop(Neg, $2) }
 	| NOT expr 										{ Unop(Not, $2) }
-	| ID ASN expr 								{ Assign($1, $3) }
+	// | ID ASN expr 								{ Assign($1, $3) }
+   | expr ASN expr 								{ Assign($1, $3) }
 	| LPAREN expr RPAREN 							{ $2 }
    /* function call */ /* equation call */
-   | ID LPAREN args RPAREN             {FunctionCall($1, $3)} 
+   | ID LPAREN args RPAREN             { FunctionCall($1, $3) } 
+   | LBRACK opt_lst RBRACK                   { Array($2)}
+   | expr LBRACK expr RBRACK            { ArrayAccess($1, $3)}
+
    /* | '{m} = 10*12/10*'{mm} | */ 
    // | BAR PRIME LBRACE UID RBRACE ASN cexpr TIMES unit BAR SEMI {UnitAssign($4, $7, $9)}
    // /* int x = 10/2 */
@@ -227,9 +233,13 @@ expr:
 // lst_block:
 //   LBRACK opt_lst RBRACK {$2}
 
-// opt_lst:
-//    {[]}
-//    | lst { List.rev $1 }
+opt_lst:
+   {[]}
+   | lst { List.rev $1 }
+
+lst: 
+     expr { [$1]}
+   | lst COMMA expr { $3 :: $1 }
 
 // lst:
 //    prime {[$1]}

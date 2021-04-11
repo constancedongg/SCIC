@@ -92,6 +92,22 @@ let check (globals, functions) =
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
 
+    (* type_to_array converts type to corresponding array type for array handling *)
+    let type_to_array = function
+      | Int -> IntArr
+      (* | Bool -> BoolArr *)
+      (* | String -> StringArr *)
+      | Float -> FloatArr
+      | _ as x -> x
+    in 
+    (* array_to_type converts array types to their corresponding non-array types *)
+    let array_to_type = function
+      | IntArr -> Int
+      (* | BoolArr -> Bool *)
+      | FloatArr -> Float
+      (* | StringArr -> String *)
+      | _ as x -> x
+    in 
     (* Return a semantically-checked expression, i.e., with a type *)
     let rec expr table = function
         IntLit  l -> (Int, SIntLit l)
@@ -107,12 +123,14 @@ let check (globals, functions) =
           let err = "illegal assignment " ^ string_of_typ lt ^ "=" ^ string_of_typ rt ^ " in " ^ string_of_expr ex in
           let lt2 = check_assign lt rt err in
           (check_assign lt2 rt err, SDAssign(lt2, var, (rt, e'))) *)
-      | Assign(var, e) as ex -> 
-          let lt = type_of_identifier var table
-          and (rt, e') = expr table e in
+      | Assign(e1, e2) as ex -> 
+          let (lt, e1') = match e1 with 
+                Id(s) -> (type_of_identifier s table, SId s)
+              | _ -> expr table e1 
+          and (rt, e2') = expr table e2 in
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
             string_of_typ rt ^ " in " ^ string_of_expr ex
-          in (check_assign lt rt err, SAssign(var, (rt, e')))
+          in (check_assign lt rt err, SAssign((lt, e1'), (rt, e2')))
       
       | Unop(op, e) as ex -> 
           let (t, e') = expr table e in
@@ -130,17 +148,16 @@ let check (globals, functions) =
           let same = t1 = t2 in
           (* Determine expression type based on operator and operand types *)
           let ty = match op with
-            Add | Sub | Mult | Div  when same && t1 = Int   -> Int
-          | Add | Sub | Mult | Div | Pow when same && t1 = Float -> Float
-          | Pow when (t1 = Float && t2 = Int) -> Float
-          | Equal | Neq            when same               -> Bool
-          | Less | Leq | Greater | Geq
-                     when same && (t1 = Int || t1 = Float) -> Bool
-          | And | Or when same && t1 = Bool -> Bool
-          | _ -> raise (
-	      Failure ("illegal binary operator " ^
-                       string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
-                       string_of_typ t2 ^ " in " ^ string_of_expr e))
+                    Add | Sub | Mult | Div  when same && t1 = Int   -> Int
+                  | Add | Sub | Mult | Div | Pow when same && t1 = Float -> Float
+                  | Pow when (t1 = Float && t2 = Int) -> Float
+                  | Equal | Neq            when same               -> Bool
+                  | Less | Leq | Greater | Geq
+                            when same && (t1 = Int || t1 = Float) -> Bool
+                  | And | Or when same && t1 = Bool -> Bool
+                  | _ -> raise (Failure ("illegal binary operator " ^
+                                        string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
+                                        string_of_typ t2 ^ " in " ^ string_of_expr e))
           in (ty, SBinop((t1, e1'), op, (t2, e2')))
       | FunctionCall(fname, args) as call -> 
           let fd = find_func fname in
@@ -156,6 +173,25 @@ let check (globals, functions) =
           in 
           let args' = List.map2 check_call fd.func_formals args
           in (fd.return_type, SFunctionCall(fname, args'))
+
+      | Array(el) -> 
+        let rec helper typ out  = function 
+          | [] -> (type_to_array typ, SArray(List.rev out))
+          | a :: tl -> 
+            let (t, e) = expr table a in
+            if t = typ then helper t ((t, e) :: out) tl 
+            else raise (Failure ("multiple types in array not allowed"))
+        in (match el with 
+            | a :: tl ->  let (t,e) = expr table a in helper t [(t, e)] tl 
+            | [] -> raise (Failure ("empty array init not allowed")))
+
+      | ArrayAccess(e1, e2) ->
+        let (t1, e1') = expr table e1 in 
+        let (t2, e2') = expr table e2 in 
+        if (t1 = IntArr || t1 = FloatArr) && t2 = Int 
+          then (array_to_type t1, SArrayAccess((t1, e1'), (t2, e2')))
+        else raise (Failure ("invalid type for array access")) 
+
     in
 
     let check_bool_expr table e = 
@@ -164,14 +200,14 @@ let check (globals, functions) =
       in if t' != Bool then raise (Failure err) else (t', e') 
     in
 
-    let print_map key value =
+    (* let print_map key value =
       let new_value = string_of_typ value in
-      print_string(key ^ " " ^ new_value ^ "\n") in 
+      print_string(key ^ " " ^ new_value ^ "\n") in  *)
 
     (* Return a semantically-checked statement i.e. containing sexprs *)
     let rec check_stmt table = function
         Expr e -> (table, SExpr (expr table e))
-      | DAssign(lt, var, e) as ex -> 
+      | DAssign(lt, var, e) -> 
         let (rt, e') = expr table e in
         let err = "illegal assignment" in
         let lt2 = check_assign lt rt err in
@@ -182,6 +218,8 @@ let check (globals, functions) =
                           (table_b2, SIf(check_bool_expr table p, st_b1, st_b2))
       | For(e1, e2, e3, st) -> let (new_table, new_st) = check_stmt table st in 
                                 (new_table, SFor(expr new_table e1, check_bool_expr new_table e2, expr new_table e3, new_st)) 
+      | While(p, st) -> let (new_table, new_st) = check_stmt table st in 
+                (new_table, SWhile(check_bool_expr new_table p, new_st))
       | Return e -> let (t, e') = expr table e in
         if t = func.return_type then (table, SReturn (t, e'))
         else raise (

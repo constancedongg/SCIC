@@ -5,7 +5,7 @@ type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
 
 type uop = Neg | Not
 
-type typ = Int | Bool | Float | String | Void 
+type typ = Int | Bool | Float | String | Void | IntArr | FloatArr 
 
 type bind = typ * string
 
@@ -18,9 +18,11 @@ type expr =
   | Id of string
   | Binop of expr * op * expr
   | Unop of uop * expr
-  | Assign of string * expr
+  | Assign of expr * expr
   | FunctionCall of string * expr list
-  | Noexpr
+  | Array of expr list 
+  | ArrayAccess of expr * expr 
+  | Noexpr 
 
 
 type stmt =
@@ -29,6 +31,7 @@ type stmt =
   | Return of expr
   | If of expr * stmt * stmt
   | For of expr * expr * expr * stmt
+  | While of expr * stmt  
   | DAssign of typ * string * expr
 
 type func_decl = {
@@ -65,6 +68,8 @@ let string_of_op = function
 | Float -> "float"
 | String -> "string"
 | Void -> "void"
+| IntArr -> "int[]"
+| FloatArr -> "float[]"
 
 let string_of_uop = function
     Neg -> "-"
@@ -80,9 +85,12 @@ let rec string_of_expr = function
   | Binop(e1, o, e2) ->
       string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
   | Unop(o, e) -> string_of_uop o ^ string_of_expr e
-  | Assign(v, e) -> v ^ " = " ^ string_of_expr e
+  | Assign(v, e) -> string_of_expr v ^ " = " ^ string_of_expr e
   | FunctionCall(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
+  | Array(el) -> String.concat ", " (List.map string_of_expr el) 
+  | ArrayAccess(s, e) -> string_of_expr s ^ "[" ^ string_of_expr e ^ "]"
+      
   | Noexpr -> ""
 
 let rec string_of_stmt = function
@@ -96,6 +104,7 @@ let rec string_of_stmt = function
   | For(e1, e2, e3, s) ->
       "for (" ^ string_of_expr e1  ^ " ; " ^ string_of_expr e2 ^ " ; " ^
       string_of_expr e3  ^ ") " ^ string_of_stmt s
+  | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
   | DAssign(t, v, e) -> string_of_typ t ^ " " ^ v ^ " = " ^ string_of_expr e ^ ";\n"
 
 let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
