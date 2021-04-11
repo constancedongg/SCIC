@@ -10,7 +10,7 @@
 %token ASN DASN
 %token BOOL INT FLOAT CHAR STRING INTARR FLOATARR VOID
 %token FUNC EQUA
-%token IF ELSE NOELSE FOR RETURN 
+%token IF ELSE NOELSE FOR WHILE RETURN 
 %token METER SEC KGRAM AMP CMETER HERTZ GRAM NEWTON 
 
 
@@ -173,7 +173,7 @@ stmt:
 	| IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
   	| IF LPAREN expr RPAREN stmt ELSE stmt    { If($3, $5, $7)        }
   	| FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt { For($3, $5, $7, $9)   }
-
+   | WHILE LPAREN expr RPAREN stmt           { While($3, $5)   }
    
 expr_opt:
     /* nothing */ { Noexpr }

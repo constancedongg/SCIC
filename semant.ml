@@ -218,6 +218,8 @@ let check (globals, functions) =
                           (table_b2, SIf(check_bool_expr table p, st_b1, st_b2))
       | For(e1, e2, e3, st) -> let (new_table, new_st) = check_stmt table st in 
                                 (new_table, SFor(expr new_table e1, check_bool_expr new_table e2, expr new_table e3, new_st)) 
+      | While(p, st) -> let (new_table, new_st) = check_stmt table st in 
+                (new_table, SWhile(check_bool_expr new_table p, new_st))
       | Return e -> let (t, e') = expr table e in
         if t = func.return_type then (table, SReturn (t, e'))
         else raise (
