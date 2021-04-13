@@ -5,7 +5,7 @@ open Sast
 
 module StringMap = Map.Make(String)
 module SS = Set.Make(String);;
-
+test 
 let check (globals, functions) =
   let rec resemble lst = 
     match lst with
