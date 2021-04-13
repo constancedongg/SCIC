@@ -74,7 +74,7 @@ let translate (globals, functions) =
     let function_decl m fdecl =
       let name = fdecl.sfunc_identifier
       and formal_types = 
-	Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) fdecl.sfunc_formals)
+	Array.of_list (List.map (fun (t,_,_) -> ltype_of_typ t) fdecl.sfunc_formals)
       in let ftype = L.function_type (ltype_of_typ fdecl.sreturn_type) formal_types in
       StringMap.add name (L.define_function name ftype the_module, fdecl) m in
     List.fold_left function_decl StringMap.empty functions in

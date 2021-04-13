@@ -23,10 +23,11 @@ let () =
   match !action with
     Ast -> print_string (Ast.string_of_program ast)
   | _ -> let sast = Semant.check ast in
+        let usast = Unitcheck.check sast in
     match !action with
       Ast     -> ()
     | Sast    -> print_string (Sast.string_of_sprogram sast)
-    | LLVM_IR -> print_string (Llvm.string_of_llmodule (Codegen.translate sast))
-    | Compile -> let m = Codegen.translate sast in
+    | LLVM_IR -> print_string (Llvm.string_of_llmodule (Codegen.translate usast))
+    | Compile -> let m = Codegen.translate usast in
 	Llvm_analysis.assert_valid_module m;
 	print_string (Llvm.string_of_llmodule m)

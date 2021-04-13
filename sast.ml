@@ -2,6 +2,10 @@
 
 open Ast
 
+type sunt = 
+  SUnit of string
+
+
 type sexpr = typ * sx
 and sx =
   SIntLit of int
@@ -29,11 +33,13 @@ type sstmt =
 type sfunc_decl = {
     sreturn_type : typ;
     sfunc_identifier : string;
-    sfunc_formals : bind list;
+    sfunc_formals : ubind list;
     sfunc_stmts: sstmt list;
   }
 
-type sprogram = bind list * sfunc_decl list
+  (* sreturn_unit: unt; *)
+
+type sprogram = ubind list * sfunc_decl list
 
 (* Pretty-printing functions *)
 
@@ -72,9 +78,13 @@ let rec string_of_sstmt = function
   | SWhile(e, s) -> "while (" ^ string_of_sexpr e ^ ") " ^ string_of_sstmt s
   | SDAssign(t, v, e) -> string_of_typ t ^ " " ^ v ^ " = " ^ string_of_sexpr e ^ ";\n" 
 
+
+let get_3_3 t = match t with 
+(_, _, e) -> e;;
+
 let string_of_sfdecl fdecl =
   string_of_typ fdecl.sreturn_type ^ " " ^ "func " ^ 
-  fdecl.sfunc_identifier ^ "(" ^ String.concat ", " (List.map snd fdecl.sfunc_formals) ^
+  fdecl.sfunc_identifier ^ "(" ^ String.concat ", " (List.map get_3_3 fdecl.sfunc_formals) ^
   ")\n{\n" ^
   String.concat "" (List.map string_of_sstmt fdecl.sfunc_stmts) ^
   "}\n"
