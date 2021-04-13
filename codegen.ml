@@ -92,7 +92,7 @@ let translate (globals, functions) =
        declared variables.  Allocate each on the stack, initialize their
        value, if appropriate, and remember their values in the "locals" map *)
         let local_vars =
-          let add_formal m (t, n) p = 
+          let add_formal m (t,u,n) p = 
             L.set_value_name n p;
           let local = L.build_alloca (ltype_of_typ t) n builder in
                 ignore (L.build_store p local builder);
@@ -104,9 +104,9 @@ let translate (globals, functions) =
       let local_var = L.build_alloca (ltype_of_typ t) n builder
       in StringMap.add n local_var m  *)
           in
-    
+
           List.fold_left2 add_formal StringMap.empty fdecl.sfunc_formals
-              (Array.to_list (L.params the_function)) 
+              (Array.to_list (L.params the_function))
           (* in
           List.fold_left add_local formals fdecl.slocals  *)
         in
