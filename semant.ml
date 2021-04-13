@@ -17,7 +17,7 @@ let check (globals, functions) =
   let units = SS.empty 
   in
   let units =
-    List.fold_right SS.add ["m"; "cm"; "s"] units
+    List.fold_right SS.add ["m"; "cm"; "s"; "1"] units
   in
   
   (* SCIC does not have void type, which here only check for duplicate names *)
