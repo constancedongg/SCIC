@@ -84,7 +84,7 @@ var_decl:
    // typ unit ID SEMI {($1, $2, $3)}
    /* <type> <variable_name>; int x; */
    typ UNIT ID SEMI { ($1, $2, $3) }
-//   |typ ID SEMI { ($1, Nounit, $2) }
+  |typ ID SEMI { ($1, "1", $2) }
 
 typ:
    INT     { Int   }

@@ -4,7 +4,7 @@ open Ast
 open Sast
 
 module StringMap = Map.Make(String)
-module SS = Set.Make(String);;
+module SS = Set.Make(String)
 (* module Mut = Set.Make(struct type t = unt;; let compare = compare end);; *)
 
 (* Semantic checking of the AST. Returns an SAST if successful,
@@ -25,10 +25,6 @@ let check (globals, functions) =
   let check_ubinds (kind : string) (ubinds : ubind list) =
     List.iter (function
     (Void, _, b) -> raise (Failure ("illegal void " ^ kind ^ " " ^ b)) 
-    | _ -> ()) ubinds;
-    List.iter (function 
-    (_, u, _) ->  try ignore(SS.find u units) 
-                    with Not_found -> raise (Failure ("nonexisted unit"))
     | _ -> ()) ubinds;
     let rec dups = function
         [] -> ()
