@@ -22,7 +22,7 @@ let check (globals, functions) =
   let nonbase_unit_check u table = 
     match StringMap.find_opt u table with
       Some (bu, l) -> ()
-    | None ->  raise (Failure ("units cannot found in table " ^ u)) 
+    | None ->  raise (Failure ("units " ^ u ^ " not found in table")) 
   in 
   
   let unit_check u set table = 
@@ -35,7 +35,7 @@ let check (globals, functions) =
 
   (* check global variable unit exists*)
   let unit_check_exists (ubinds : ubind list) =
-    List.iter (function (_, u, _) ->ignore(unit_check u base_units units)
+    List.iter (function (_, u, _) -> ignore(unit_check u base_units units)
                 ) ubinds
   in
   
@@ -70,9 +70,57 @@ let check (globals, functions) =
   (* func is current function scope *)
   let check_function func = 
 
-    (*  *)
-    let convert u = 
+    (* Raise an exception if the given rvalue unit cannot be assigned to
+    the given lvalue type *)
+    (* let check_assign lvalueu rvalueu err = 
+      (* lvalueu int m z *)
+      let lvalueu' = convert lvalueu
+      (* rvalueu: int m || int "1"*)
+      and rvalueu' 
+      if lvalueu = rvalueu || StringMap.find 
+        then lvalueu else raise (Failure err)
+    in *)
+
+    (* let check_assign lunit runit err = 
+      if lunit = runit then lunit 
+      else if runit = "1" then "1"
+      else 
+        try let (u, _) = StringMap.find lunit units 
+      in 
+        with Not_found -> raise (Fialure ("left unit " ^ lunit ^ "not defined"))
+    in  *)
+
+
+    (* Build local symbol table of variables for this function*)
+    let symbols = List.fold_left (fun m (_, unt, name) -> StringMap.add name unt m)
+      StringMap.empty (globals @ func.func_formals )
     in
+
+    (* find unit of identifier *)
+    let unit_of_identifier s table =
+      try StringMap.find s table
+      with Not_found -> raise (Failure ("cannot find unit for identifier " ^ s))
+    in
+    
+    (* get conversion rate between two untis *)
+    let get_multipler lunit runit map =
+      if lunit = runit then 1
+      else if runit = "1" then 1
+      else try let (u, r) = StringMap.find lunit map in
+              if u = runit then r
+              else raise (Failure ("right unit is not defined in the conversion rule"))
+            with Not_found -> raise (Failure ("unit " ^ lunit ^ " not defined"))
+    in 
+
+
+    let rec expr table = function
+      Assign(e1, e2) as ex -> 
+      let lunit = unit_of_identifier e1 table
+        and runit = unit_of_identifier e2 table
+        and err = "illegal unit assignment " ^ lunit ^ "=" ^ runit
+      in 
+      (* ignore check_assign lunit runit err ;  *)
+      Assign(e1, Binop(e2, Mult, get_multipler(lunit, runit, units)))
 
     (* 
       string/bool/other -> none
@@ -82,8 +130,12 @@ let check (globals, functions) =
     (* 
       bool m boo = true // -> skip
       int m x = 10 // 
-      int cm y = 10
-      int mm z = y
+      int cm y = x;
+      print(y) = 1000
+      int cm y = x + 2 * x ;   // 
+    
+
+      int mm z = y * 10
       (int, 10, int mm z = y)
       print(z) // 10 * 10
       int mm z = 100 * expr(y {m})
@@ -92,29 +144,12 @@ let check (globals, functions) =
 
     *)
 
-    (* Raise an exception if the given rvalue unit cannot be assigned to
-    the given lvalue type *)
-    (*  *)
-    let check_assign lvalueu rvalueu err = 
-      (* lvalueu int m z *)
-      let lvalueu' = convert lvalueu
-      (* rvalueu: int m || int "1"*)
-      and rvalueu' 
-      if lvalueu = rvalueu || StringMap.find 
-        then lvalueu else raise (Failure err)
-    in
+
    
     
-    (* Build local symbol table of variables for this function*)
-    let symbols = List.fold_left (fun m (_, unt, name) -> StringMap.add name unt m)
-      StringMap.empty (globals @ func.func_formals )
-    in
 
-    (* Return a variable from our local symbol table *)
-    let unit_of_identifier s table =
-      try StringMap.find s table
-      with Not_found -> raise (Failure ("undeclared identifier " ^ s))
-    in
+
+    
     
     (* check *)
   in
@@ -122,17 +157,11 @@ let check (globals, functions) =
 
 
 
-  let _ = unit_check_exists globals
+  (* let _ = unit_check_exists globals
   in
-  
-  let rec resemble lst = 
-    match lst with
-  |  [] -> []
-  | (t, u, n)::tl -> (t, n)::(resemble tl)
-  in
+   *)
 
-
-  (resemble globals, list.map check_function functions)
+  (globals, list.map check_function functions)
 
   (* let check (globals, functions) =
     (globals, functions) *)
