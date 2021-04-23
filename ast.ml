@@ -40,7 +40,7 @@ type stmt =
   | If of expr * stmt * stmt
   | For of expr * expr * expr * stmt
   | While of expr * stmt  
-  | DAssign of typ * string * expr
+  | DAssign of typ * string * string * expr
 
 type func_decl = {
     return_type : typ;
@@ -118,7 +118,7 @@ let rec string_of_stmt = function
       "for (" ^ string_of_expr e1  ^ " ; " ^ string_of_expr e2 ^ " ; " ^
       string_of_expr e3  ^ ") " ^ string_of_stmt s
   | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
-  | DAssign(t, v, e) -> string_of_typ t ^ " " ^ v ^ " = " ^ string_of_expr e ^ ";\n"
+  | DAssign(t, u, v, e) -> string_of_typ t ^ " " ^ u ^ " " ^ v ^ " = " ^ string_of_expr e ^ ";\n"
 
 let string_of_vdecl (t, u, id) = string_of_typ t ^ " " ^ u ^ " " ^ id ^ ";\n"
 

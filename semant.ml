@@ -227,12 +227,12 @@ let check (globals, functions) =
     (* Return a semantically-checked statement i.e. containing sexprs *)
     let rec check_stmt table = function
         Expr e -> (table, SExpr (expr table e))
-      | DAssign(lt, var, e) -> 
+      | DAssign(lt, unt, var, e) -> 
         let (rt, e') = expr table e in
         let err = "illegal assignment" in
         let lt2 = check_assign lt rt err in
         let new_table = StringMap.add var lt2 table in
-        (new_table, SDAssign(lt2, var, (rt, e')))
+        (new_table, SDAssign(lt2, unt, var, (rt, e')))
       | If(p, b1, b2) -> let (table_b1, st_b1) = check_stmt table b1 in
                           let (table_b2, st_b2) = check_stmt table_b1 b2 in 
                           (table_b2, SIf(check_bool_expr table p, st_b1, st_b2))

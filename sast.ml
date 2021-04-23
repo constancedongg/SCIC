@@ -28,7 +28,7 @@ type sstmt =
   | SIf of sexpr * sstmt * sstmt
   | SFor of sexpr * sexpr * sexpr * sstmt
   | SWhile of sexpr * sstmt
-  | SDAssign of typ * string * sexpr
+  | SDAssign of typ * string * string * sexpr
 
 type sfunc_decl = {
     sreturn_type : typ;
@@ -76,7 +76,7 @@ let rec string_of_sstmt = function
       "for (" ^ string_of_sexpr e1  ^ " ; " ^ string_of_sexpr e2 ^ " ; " ^
       string_of_sexpr e3  ^ ") " ^ string_of_sstmt s
   | SWhile(e, s) -> "while (" ^ string_of_sexpr e ^ ") " ^ string_of_sstmt s
-  | SDAssign(t, v, e) -> string_of_typ t ^ " " ^ v ^ " = " ^ string_of_sexpr e ^ ";\n" 
+  | SDAssign(t, u, v, e) -> string_of_typ t ^ " " ^ u ^ " " ^ v ^ " = " ^ string_of_sexpr e ^ ";\n" 
 
 
 let get_3_3 t = match t with 

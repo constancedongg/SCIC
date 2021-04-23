@@ -194,7 +194,8 @@ stmt_list:
 
 stmt:
    expr SEMI {Expr $1}
-   | typ ID ASN expr SEMI                  { DAssign($1, $2, $4) } 
+   | typ ID ASN expr SEMI                  { DAssign($1, "1", $2, $4) } 
+   | typ UNIT ID ASN expr SEMI                  { DAssign($1, $2, $3, $5) } 
    | RETURN expr_opt SEMI 				      {Return $2}
    | LBRACE stmt_list RBRACE              { Block(List.rev $2) }
 	| IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }

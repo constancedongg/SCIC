@@ -236,7 +236,7 @@ let translate (globals, functions) =
     let rec stmt builder table = function
       	SBlock sl -> List.fold_left (fun (builder, table) s -> stmt builder table s) (builder, table) sl
       | SExpr e -> ignore(expr builder table e); (builder, table)
-      | SDAssign (t, s, e) -> let add_local m (t, n) =
+      | SDAssign (t, u, s, e) -> let add_local m (t, n) =
                                 let local_var = L.build_alloca (ltype_of_typ t) n builder
                                   in StringMap.add n local_var m in
                               let new_table = add_local table (t, s) in
