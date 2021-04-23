@@ -95,10 +95,9 @@ let check (globals, functions) =
     (*  *)
     let check_assign lvalueu rvalueu err = 
       (* lvalueu int m z *)
-      let lvalueu' = convert lvalueu
+
       (* rvalueu: int m || int "1"*)
-      and rvalueu' 
-      if lvalueu = rvalueu || StringMap.find 
+      if lvalueu = rvalueu 
         then lvalueu else raise (Failure err)
     in
    
@@ -115,6 +114,7 @@ let check (globals, functions) =
     in
     
     (* check *)
+    let _ = unit_check_exists func.func_formals
   in
 
 
@@ -128,7 +128,7 @@ let check (globals, functions) =
   | (t, u, n)::tl -> (t, n)::(resemble tl)
   in
 
-  let rec expr table = function
+  let rec sexpr table = function
     SIntLit  l   -> ("1", SIntLit l)
   | SFloatLit l  -> ("1", SFloatLit l)
   | SBoolLit l   -> ("1", SBoolLit l)
@@ -136,11 +136,12 @@ let check (globals, functions) =
   | SNoexpr      -> ("1", SNoexpr)
   | SId s        -> (unit_of_identifier s table, SId s)
   | SAssign(e1, e2) as ex -> 
-    (* find unit of e1*)
-    let lu = unit_of_identifier s table in
+      let (lu, e1') = match e1 with 
+        Id(s) -> (type_of_identifier s table, SId s)
+        | _ -> expr table e1 
     (* find unit of e1*)
     and (ru, e2') = expr table e2 in
-      let err = "illegal assignment found in unit check "
+      let err = "illegal assignment found in unit check " in
     let (scale, lu) = check_unit_assign lu ru in
     let scale_e2' = convert e2' scale
     in (lu, SAssign((lu, e1'), (ru, scale_e2')))
@@ -149,7 +150,7 @@ let check (globals, functions) =
     (* check each of the args, to see if it can scale*)
     let check_args_unit (_,fu,_) e =
       let (eu, e') = expr table e in
-      let err = "illegal argument found in unit check"
+      let err = "illegal argument found in unit check" in
       let (scale, fu) = check_unit_assign fu eu in
       let scale_e' = convert e' scale in
       scale_e'
@@ -157,10 +158,11 @@ let check (globals, functions) =
     let args' = List.map2 check_args_unit fd.func_formals args
   in (fd.return_unit, SFunctionCall(fname, args'))
 
+in
 
   (* in this layer, we still use SAST, BUT ALL TYPE IS UNIT TYPE*)
   (* I guess -> so no need to write USAT *)
-  let rec check_stmt table = function
+  let rec check_stmt table = function 
    SExpr e -> (table, UExpr(expr table e))
   | SDAssign (lt, unt, var, e) ->
       (* get e's unit in recursion*)
@@ -176,10 +178,10 @@ let check (globals, functions) =
          x = 10 * y
          then we can have no unit along with
       *)
-      let scale_e' = convert e' scale
+      let scale_e' = convert e' scale in
       let new_table = StringMap.add var lu table in
       (* here all the expr must be (unit, expr) according to usat *)
-      (new_table, SDAssign(lt, unt, var, (lu, scale_e'))
+      (new_table, SDAssign(lt, unt, var, (lu, scale_e')))
   | SIf(p, b1, b2) -> let (table_b1, st_b1) = check_stmt table b1 in
   let (table_b2, st_b2) = check_stmt table_b1 b2 in 
   (table_b2, SIf(check_bool_expr table p, st_b1, st_b2))
