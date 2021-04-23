@@ -71,8 +71,6 @@ let check (globals, functions) =
   let check_function func = 
 
     (*  *)
-    let convert u = 
-    in
 
     (* 
       string/bool/other -> none
@@ -120,18 +118,103 @@ let check (globals, functions) =
   in
 
 
-
-
   let _ = unit_check_exists globals
   in
   
+  (* what is blow ?? *)
   let rec resemble lst = 
     match lst with
   |  [] -> []
   | (t, u, n)::tl -> (t, n)::(resemble tl)
   in
 
+  let rec expr table = function
+    SIntLit  l   -> ("1", SIntLit l)
+  | SFloatLit l  -> ("1", SFloatLit l)
+  | SBoolLit l   -> ("1", SBoolLit l)
+  | SStringLit l -> ("1", SStringLit l)
+  | SNoexpr      -> ("1", SNoexpr)
+  | SId s        -> (unit_of_identifier s table, SId s)
+  | SAssign(e1, e2) as ex -> 
+    (* find unit of e1*)
+    let lu = unit_of_identifier s table in
+    (* find unit of e1*)
+    and (ru, e2') = expr table e2 in
+      let err = "illegal assignment found in unit check "
+    let (scale, lu) = check_unit_assign lu ru in
+    let scale_e2' = convert e2' scale
+    in (lu, SAssign((lu, e1'), (ru, scale_e2')))
+  | SFunctionCall(fname, args) as call -> 
+    let fd = find_func fname in
+    (* check each of the args, to see if it can scale*)
+    let check_args_unit (_,fu,_) e =
+      let (eu, e') = expr table e in
+      let err = "illegal argument found in unit check"
+      let (scale, fu) = check_unit_assign fu eu in
+      let scale_e' = convert e' scale in
+      scale_e'
+    in
+    let args' = List.map2 check_args_unit fd.func_formals args
+  in (fd.return_unit, SFunctionCall(fname, args'))
 
+
+  (* in this layer, we still use SAST, BUT ALL TYPE IS UNIT TYPE*)
+  (* I guess -> so no need to write USAT *)
+  let rec check_stmt table = function
+   SExpr e -> (table, UExpr(expr table e))
+  | SDAssign (lt, unt, var, e) ->
+      (* get e's unit in recursion*)
+      let (ru, e') = expr table e in
+      let err = "illegal assignment" in
+      (* check if e's unit can assign to variable unit *)
+      let (scale, lu) = check_unit_assign unt ru in
+      (* convert e expression with scaler 
+         such as
+         m y = 5
+         cm x = 100 * y
+         after convert
+         x = 10 * y
+         then we can have no unit along with
+      *)
+      let scale_e' = convert e' scale
+      let new_table = StringMap.add var lu table in
+      (* here all the expr must be (unit, expr) according to usat *)
+      (new_table, SDAssign(lt, unt, var, (lu, scale_e'))
+  | SIf(p, b1, b2) -> let (table_b1, st_b1) = check_stmt table b1 in
+  let (table_b2, st_b2) = check_stmt table_b1 b2 in 
+  (table_b2, SIf(check_bool_expr table p, st_b1, st_b2))
+  | SFor(e1, e2, e3, st) -> let (new_table, new_st) = check_stmt table st in 
+              (new_table, SFor(expr new_table e1, check_bool_expr new_table e2, expr new_table e3, new_st)) 
+  | SWhile(p, st) -> let (new_table, new_st) = check_stmt table st in 
+  (new_table, SWhile(check_bool_expr new_table p, new_st))
+  | SReturn e -> let (u, e') = expr table e in
+  (* check if return e's unit can be convert to function return unit*)
+    (* question, where is func.return unit??? *)
+  if u = func.return_type then (table, SReturn (u, e'))
+  else raise (
+  Failure ("return gives " ^ string_of_typ t ^ " expected " ^
+  string_of_typ func.return_type ^ " in " ^ string_of_expr e))
+  | Block sl -> 
+    let rec check_stmt_list table = function
+        [Return _ as s] -> let (new_table, st) = check_stmt table s in (new_table, [st])
+      | Return _ :: _   -> raise (Failure "nothing may follow a return")
+      | Block sl :: ss  -> check_stmt_list table (sl @ ss) (* Flatten blocks *)
+      | s :: ss         -> let (one_table, one_s) = check_stmt table s in 
+                            let (list_table, list_s) = check_stmt_list one_table ss in 
+                              (list_table, one_s :: list_s)
+      | []              -> (table, [])
+    in let (new_table, listS) = check_stmt_list table sl in (new_table, SBlock(listS))
+
+
+   in
+    { sreturn_type = func.return_type;
+    sfunc_identifier = func.func_identifier;
+    sfunc_formals = func.func_formals;
+    sfunc_stmts = match check_stmt symbols (Block func.func_stmts) with
+	    (_, SBlock(sl)) -> sl
+      | _ -> raise (Failure ("internal error: block didn't become a block?"))
+    }
+in
   (resemble globals, list.map check_function functions)
 
   (* let check (globals, functions) =
