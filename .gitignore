@@ -3,4 +3,5 @@ testall.log
 _build/*
 test-*.s
 test-*.ll
+printbig.o
 

@@ -45,7 +45,7 @@ let check (globals, functions) =
     let add_bind map (name, ty) = StringMap.add name {
       return_type = Void;
       func_identifier = name; 
-      func_formals = [(ty,"","x")];
+      func_formals = [(ty,"1","x")];
       func_stmts = [] } map
     in List.fold_left add_bind StringMap.empty [ ("print", Int); ("printl", String);
 			                         ("printb", Bool);
