@@ -128,6 +128,7 @@ let check (globals, functions) =
   | (t, u, n)::tl -> (t, n)::(resemble tl)
   in
 
+  (* in this layer, we still use SAST, BUT ALL TYPE IS UNIT TYPE*)
   let rec expr table = function
     SIntLit  l   -> ("1", SIntLit l)
   | SFloatLit l  -> ("1", SFloatLit l)
