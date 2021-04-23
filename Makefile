@@ -26,7 +26,7 @@ scic.native :
 .PHONY : clean
 clean :
 	ocamlbuild -clean
-	rm -rf testall.log ocamlllvm *.diff *.ll *.exe *.out *.s *.err
+	rm -rf testall.log ocamlllvm *.diff *.ll *.exe *.out *.s *.err printbig.o
 
 # Testing the "printbig" example
 
