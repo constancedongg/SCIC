@@ -7,7 +7,6 @@ module StringMap = Map.Make(String)
 module SS = Set.Make(String);;
 
 
-
 let check (udecls, globals, functions) =
   (* some base unit *)
   let base_units = 
@@ -267,7 +266,7 @@ in
     (new_table, SWhile(p, new_st))
   | SReturn e -> let (eu, (t, e')) = expr table e in
       if check_right_unit eu then  (table, SReturn(t, e'))
-      else let scale = get_scale eu func.sreturn_unit units in
+      else let scale = get_scale func.sreturn_unit eu units in
           (table, SReturn ((t, SBinop((t, e'), Mult, (Float, SFloatLit (Float.to_string scale))))))
   | SBlock sl -> 
     let rec check_stmt_list table = function
