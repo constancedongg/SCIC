@@ -18,6 +18,9 @@ type bind = typ * string
 
 type ubind = typ * string * string 
 
+(* new unit, existing unit * scale in floatlit *)
+type unit_decl = string * string * string 
+
 type expr =
   IntLit of int
   | FloatLit of string
@@ -51,8 +54,12 @@ type func_decl = {
   (* retun_unit: unt; *)
 
 
-
-type program = ubind list * func_decl list
+type program = {
+  udecls: unit_decl list;
+  globals: ubind list;
+  fdecls: func_decl list;
+}
+(* unit_decl list * ubind list * func_decl list *)
 
 (* Pretty-printing functions *)
 
@@ -122,6 +129,8 @@ let rec string_of_stmt = function
 
 let string_of_vdecl (t, u, id) = string_of_typ t ^ " " ^ u ^ " " ^ id ^ ";\n"
 
+let string_of_udecl (u1, c, u2) = "'{" ^ u1 ^ "} = " ^ c ^ " * '{" ^ u2 ^ "}; \n" 
+
 let get_3_3 t = match t with 
     (_, _, e) -> e;;
 
@@ -133,7 +142,8 @@ let string_of_fdecl fdecl =
   String.concat "" (List.map string_of_stmt fdecl.func_stmts) ^
   "}\n"
 
-let string_of_program (vars, funcs) =
-  String.concat "" (List.map string_of_vdecl vars) ^ "\n" ^
-  String.concat "\n" (List.map string_of_fdecl funcs)
+let string_of_program program =
+  String.concat "" (List.map string_of_udecl program.udecls) ^ "\n" ^
+  String.concat "" (List.map string_of_vdecl program.globals) ^ "\n" ^
+  String.concat "\n" (List.map string_of_fdecl program.fdecls)
   
