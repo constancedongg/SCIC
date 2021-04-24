@@ -44,6 +44,7 @@ let check (globals, functions) =
   let built_in_decls = 
     let add_bind map (name, ty) = StringMap.add name {
       return_type = Void;
+      return_unit = "1";
       func_identifier = name; 
       func_formals = [(ty,"1","x")];
       func_stmts = [] } map
@@ -151,7 +152,6 @@ let check (globals, functions) =
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
             string_of_typ rt ^ " in " ^ string_of_expr ex
           in (check_assign lt rt err, SAssign((lt, e1'), (rt, e2')))
-      
       | Unop(op, e) as ex -> 
           let (t, e') = expr table e in
           let ty = match op with

@@ -7,6 +7,8 @@ type uop = Neg | Not
 
 type typ = Int | Bool | Float | String | Void | IntArr | FloatArr 
 
+type uni = string
+
 (* type unt = Meter | Centimeter | Second | Nounit *)
 
 (* type uexpr = 
@@ -43,6 +45,7 @@ type stmt =
 
 type func_decl = {
     return_type : typ;
+    return_unit : uni;
     func_identifier : string;
     func_formals : ubind list;
     func_stmts : stmt list;
