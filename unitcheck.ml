@@ -104,7 +104,7 @@ let check (globals, functions) =
     
     (* Build local symbol table of variables for this function*)
     let symbols = List.fold_left (fun m (_, unt, name) -> StringMap.add name unt m)
-      StringMap.empty (globals @ func.func_formals )
+      StringMap.empty (globals @ func.sfunc_formals )
     in
 
     (* Return a variable from our local symbol table *)
@@ -114,7 +114,7 @@ let check (globals, functions) =
     in
     
     (* check *)
-    let _ = unit_check_exists func.func_formals
+    let _ = unit_check_exists func.sfunc_formals
   in
 
 
@@ -122,11 +122,7 @@ let check (globals, functions) =
   in
   
   (* what is blow ?? *)
-  let rec resemble lst = 
-    match lst with
-  |  [] -> []
-  | (t, u, n)::tl -> (t, n)::(resemble tl)
-  in
+  
 
   let convert e2' scale = e2' in
   (* in this layer, we still use SAST, BUT ALL TYPE IS UNIT TYPE*)
@@ -156,10 +152,19 @@ let check (globals, functions) =
       (t, scale_e')
     in
     let args' = List.map2 check_args_unit fd.func_formals args
-    in (fd.return_unit, (fd.return_type, SFunctionCall(fname, args')))
+    in (fd.sreturn_unit, (fd.sreturn_type, SFunctionCall(fname, args')))
   | SUnop(op, e) as ex -> 
       let (eu, e') = expr table e in
      (eu, (t, SUnop(op, e')))
+  | SBinop(e1, op, e2) as e -> 
+    let (eu, e1') = expr table e1 in
+    (eu, (t, SBinop(e1',op,e2)))
+  | SArray(el) -> 
+    ("1", (t, SArray(el)))
+  | SArrayAccess(e1, e2) -> 
+    let (u, e1') = expr table e1 in
+    (u, (t, SArrayAccess(e1', e2)))
+
 in
 
   (* in this layer, we still use SAST, BUT ALL TYPE IS UNIT TYPE*)
@@ -200,7 +205,7 @@ in
       (* check if return e's unit can be convert to function return unit*)
         (* question, where is func.return unit??? *)
       let err = "illegal return check" in 
-      let (scale, ru) = check_unit_assign eu func.return_unit err in
+      let (scale, ru) = check_unit_assign eu func.sreturn_unit err in
       let scale_e' = convert e' scale in 
       (table, SReturn (scale_e'))
   | SBlock sl -> 
@@ -216,15 +221,21 @@ in
 
 
    in
-    { sreturn_type = func.return_type;
-    sfunc_identifier = func.func_identifier;
-    sfunc_formals = func.func_formals;
-    sfunc_stmts = match check_stmt symbols (SBlock func.func_stmts) with
+    { sreturn_type = func.sreturn_type;
+    sreturn_unit = func.sreturn_unit;
+    sfunc_identifier = func.sfunc_identifier;
+    sfunc_formals = func.sfunc_formals;
+    sfunc_stmts = match check_stmt symbols (SBlock func.sfunc_stmts) with
 	    (_, SBlock(sl)) -> sl
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
     }
 in
-  (resemble globals, list.map check_function functions)
+let rec resemble lst = 
+  match lst with
+|  [] -> []
+| (t, u, n)::tl -> (t, n)::(resemble tl)
+in
+  (resemble globals, List.map check_function functions)
 
   (* let check (globals, functions) =
     (globals, functions) *)

@@ -32,6 +32,7 @@ type sstmt =
 
 type sfunc_decl = {
     sreturn_type : typ;
+    sreturn_unit : uni;
     sfunc_identifier : string;
     sfunc_formals : ubind list;
     sfunc_stmts: sstmt list;

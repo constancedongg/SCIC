@@ -13,12 +13,6 @@ module SS = Set.Make(String)
    Check each global variable, then check each function *)
  
 let check (globals, functions) =
-
-  let units = SS.empty 
-  in
-  let units =
-    List.fold_right SS.add ["m"; "cm"; "s"; "1"] units
-  in
   
   (* SCIC does not have void type, which here only check for duplicate names *)
   (* Verify a list of bindings has no void types or duplicate names *)
@@ -261,6 +255,7 @@ let check (globals, functions) =
 
     in (* body of check_function *)
     { sreturn_type = func.return_type;
+    sreturn_unit = func.return_unit;
     sfunc_identifier = func.func_identifier;
     sfunc_formals = func.func_formals;
     sfunc_stmts = match check_stmt symbols (Block func.func_stmts) with
