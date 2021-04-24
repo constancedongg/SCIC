@@ -92,7 +92,7 @@ var_decl:
    /* <type> <unit> <variable_name>; int '{m} x; */
    // typ unit ID SEMI {($1, $2, $3)}
    /* <type> <variable_name>; int x; */
-   typ UNIT ID SEMI { ($1, $2, $3) }
+   unit_typ UNIT ID SEMI { ($1, $2, $3) }
   |typ ID SEMI { ($1, "1", $2) }
 
 typ:
@@ -103,6 +103,9 @@ typ:
   | VOID   { Void  }
   | INTARR { IntArr }
   | FLOATARR { FloatArr }
+
+unit_typ:
+   FLOAT  { Float }  
 // lst_type:
 //     typ LBRACK RBRACK { ArrayType($1) }
 
@@ -155,7 +158,7 @@ func_decl:
 	// 	func_formals      = List.rev $5;
 	// 	func_stmts        = List.rev $6
    // }}
-   typ UNIT FUNC ID LPAREN opt_formals RPAREN LBRACE stmt_list RBRACE{{
+   unit_typ UNIT FUNC ID LPAREN opt_formals RPAREN LBRACE stmt_list RBRACE{{
       return_type       = $1;
 		func_identifier   = $4;
 		func_formals      = List.rev $6;
@@ -183,8 +186,8 @@ opt_formals:
 
 formals_list:
     typ ID { [($1, "1", $2)] }
-   | typ UNIT ID { [($1, $2, $3)] }
-   | formals_list COMMA typ UNIT ID { ($3, $4, $5) :: $1 } 
+   | unit_typ UNIT ID { [($1, $2, $3)] }
+   | formals_list COMMA unit_typ UNIT ID { ($3, $4, $5) :: $1 } 
    | formals_list COMMA typ ID { ($3, "1", $4) :: $1 } 
 
 /***** statement *****/
@@ -197,7 +200,7 @@ stmt_list:
 stmt:
    expr SEMI {Expr $1}
    | typ ID ASN expr SEMI                  { DAssign($1, "1", $2, $4) } 
-   | typ UNIT ID ASN expr SEMI                  { DAssign($1, $2, $3, $5) } 
+   | unit_typ UNIT ID ASN expr SEMI                  { DAssign($1, $2, $3, $5) } 
    | RETURN expr_opt SEMI 				      {Return $2}
    | LBRACE stmt_list RBRACE              { Block(List.rev $2) }
 	| IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
