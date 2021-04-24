@@ -4,9 +4,9 @@ float '{km} x;
 float '{m} y;
 
 int func main(){
-    x = 0.98531;
+    x = 0.985321;
     float '{cm} z = x;
     printf(z);
-    /* printf(z +1.1); */
+    printf(z +1.1);
     return 0;
 }

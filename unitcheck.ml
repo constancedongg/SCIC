@@ -9,11 +9,12 @@ module SS = Set.Make(String);;
 
 
 let check (udecls, globals, functions) =
-  (* some base unit *)
+  (* base unit set - static*)
   let base_units = 
-    List.fold_right SS.add ["m"; "s"; "1"] SS.empty
+    List.fold_right SS.add ["m"; "s"; "1"; "kg"] SS.empty
   in
 
+  (* unit maping key: non-base unit, value: (base unit, scale)*)
   let units = 
     StringMap.add "cm" ("m", 100.0) StringMap.empty
   in 
@@ -52,12 +53,13 @@ let check (udecls, globals, functions) =
   in
 
   let check_udecls (kind : string) (unit_decls : unit_decl list) =
-    List.iter (function (u1, u2, _) -> ignore(base_unit_check u2 base_units); 
+    List.iter (function (u1, u2, _) -> ignore(unit_check u2 base_units units); 
                                         ignore(unit_reverse_check u1 base_units units);
     ) unit_decls;
     (* List.iter (function
     (Void, _, b) -> raise (Failure ("illegal void " ^ kind ^ " " ^ b)) 
     | _ -> ()) ubinds; *)
+    (* check duplication in new units *)
     let rec dups = function
         [] -> ()
       |	((u1, _, _) :: (u1',_, _) :: _) when u1 = u1' -> raise (Failure ("duplicate unit definition " ^ kind ^ " " ^ u1))
@@ -65,13 +67,17 @@ let check (udecls, globals, functions) =
     in dups (List.sort (fun (a,_,_) (b,_,_) -> compare a b) unit_decls)
   in
 
-  let add_unit (u1, u2, c) table = 
-    StringMap.add u1 (u2, c) table
+  let add_unit table (u1, u2, c)  = 
+    match SS.find_opt u2 base_units with
+      Some bu -> StringMap.add u1 (u2, float_of_string c) table
+    | None -> match StringMap.find_opt u2 table with
+               Some (bu, c2) -> StringMap.add u1 (bu, Float.mul c2 (float_of_string c)) table
+              | None -> raise (Failure ("The reference unit not existed " ^ u2)) 
   in
 
   let add_unit_decls (unit_decls: unit_decl list) table = 
-    check_udecls "new unit" unit_decls;
-    List.fold_left (fun m (k,u,v) -> StringMap.add k (u, float_of_string v) m) table unit_decls
+    ignore(check_udecls "new unit" unit_decls);
+    List.fold_left add_unit table unit_decls
   in
 
   let units = add_unit_decls udecls units in
@@ -154,17 +160,21 @@ let check (udecls, globals, functions) =
       else false
     in 
 
-    (* get conversion rate between two untis *)
+    (* get conversion rate between two units *)
     let get_scale lunit runit map =
         if lunit = runit then 1.0
         (* else if runit = "1" then 1.0 *)
         else try let (u, r) = StringMap.find lunit map in
                 if u = runit then r
-                else raise (Failure (lunit ^ " and " ^ runit ^ " is not defined in the conversion rule"))
+                else let (u', r') = StringMap.find runit map in
+                      if u' = u then r /. r'
+                      else raise (Failure (lunit ^ " and " ^ runit ^ " is not defined in the conversion rule"))
               with Not_found -> 
                 try let (u, r) = StringMap.find runit map in
                   if u = lunit then 1.0 /. r
-                  else raise (Failure (lunit ^ " and " ^ runit ^ " is not defined in the conversion rule"))
+                  else let (u', r') = StringMap.find lunit map in
+                        if u' = u then r' /. r
+                        else raise (Failure (lunit ^ " and " ^ runit ^ " is not defined in the conversion rule"))
               with Not_found -> raise (Failure ("unit not defined"))
       in 
     
