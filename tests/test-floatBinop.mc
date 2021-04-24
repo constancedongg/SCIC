@@ -1,4 +1,5 @@
 int func main() {
+    printf(1.2 - 0.2);          /* Sub */
     printf(1.2 + 2.876);        /* Add */ 
     printf(1.2 - 2.876);        /* Sub */ 
     printf(1.2 * 2.876);        /* Mul */ 
