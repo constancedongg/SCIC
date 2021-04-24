@@ -1,9 +1,9 @@
-int '{cm} x;
-int '{m} y;
+float '{cm} x;
+float '{m} y;
 
 int func main(){
-    y = 1;
+    y = 1.022;
     x = y; 
-    print(y); 
+    printf(x); 
     return 0;
 }
