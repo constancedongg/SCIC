@@ -167,6 +167,10 @@ let check (udecls, globals, functions) =
                   else raise (Failure (lunit ^ " and " ^ runit ^ " is not defined in the conversion rule"))
               with Not_found -> raise (Failure ("unit not defined"))
       in 
+
+    let scale_expr scaler e t = 
+      let e' = (t, SBinop((t, e), Mult, (Float, SFloatLit (Printf.sprintf "%.5f" scaler)))) in e'
+    in
     
     (* Build local symbol table of variables for this function*)
     let symbols = List.fold_left (fun m (_, unt, name) -> StringMap.add name unt m)
@@ -203,8 +207,9 @@ let check (udecls, globals, functions) =
       let (lu, (t1, e1')) = expr table e1
         and (ru, (t2, e2')) = expr table e2 in
       if check_right_unit ru then (lu, (t, SAssign((t1, e1'), (t2, e2'))))
-      else let scale = get_scale lu ru units
-            in (lu, (t, SAssign((t1, e1'), (t2, SBinop((t2, e2'), Mult, (Float, SFloatLit (Float.to_string scale)))))))
+      else let scale = get_scale lu ru units in
+      let e2_scale = scale_expr scale e2' t2 in
+      (lu, (t, SAssign((t1, e1'), e2_scale)))
 
   | SFunctionCall(fname, args) as call -> 
     let fd = find_func fname in
@@ -214,7 +219,8 @@ let check (udecls, globals, functions) =
         if StringMap.mem fname built_in_decls  || check_right_unit eu 
           then (t, e')
         else let scale = get_scale fu eu units in
-            (t, SBinop((t, e'), Mult, (Float, SFloatLit (Float.to_string scale))))
+        let e_scale = scale_expr scale e' t in
+            e_scale
       in
     let args' = List.map2 check_args_unit fd.sfunc_formals args
     in (fd.sreturn_unit, (fd.sreturn_type, SFunctionCall(fname, args')))
@@ -222,8 +228,22 @@ let check (udecls, globals, functions) =
       let (eu, e') = expr table e in
      (eu, (t, SUnop(op, e')))
   | SBinop(e1, op, e2) as e -> 
-    let (eu, e1') = expr table e1 in
-    (eu, (t, SBinop(e1',op,e2)))
+    let (eu1, (t1, e1')) = expr table e1 in
+    let (eu2, (t2, e2')) = expr table e2 in
+    let same = t1 = t2 in
+    let check_binop_unit op e1 e2 = match op with
+      | Add | Sub | Equal | Neq | Less | Leq | Greater | Geq | And | Or ->
+        let (eu1, (t1, e1')) = expr table e1 in
+        let (eu2, (t2, e2')) = expr table e2 in 
+        if check_right_unit eu1 || check_right_unit eu2 then 
+          e2
+        else
+          let scale = get_scale eu1 eu2 units in
+          let e2_scale = scale_expr scale e2' t2 in
+          e2_scale
+      | _ -> e2 in
+    let e2_scale = check_binop_unit op e1 e2 
+    in (eu1, (t1, SBinop(e1, op, e2_scale)))
   | SArray(el) -> 
     ("1", (t, SArray(el)))
   | SArrayAccess(e1, e2) -> 
@@ -252,7 +272,8 @@ in
       (* here all the expr must be (unit, expr) according to usat *)
       if res then  (new_table, SDAssign(lt, unt, var, (t, e')))
       else let scale = get_scale unt ru units in 
-        (new_table, SDAssign(lt, unt, var, (t, SBinop((t, e'), Mult, (Float, SFloatLit (Float.to_string scale))))))
+      let e_scale = scale_expr scale e' t in
+        (new_table, SDAssign(lt, unt, var, e_scale))
   | SIf(p, b1, b2) ->
     let (table_b1, st_b1) = check_stmt table b1 in
     let (table_b2, st_b2) = check_stmt table_b1 b2 in 
@@ -268,7 +289,8 @@ in
   | SReturn e -> let (eu, (t, e')) = expr table e in
       if check_right_unit eu then  (table, SReturn(t, e'))
       else let scale = get_scale eu func.sreturn_unit units in
-          (table, SReturn ((t, SBinop((t, e'), Mult, (Float, SFloatLit (Float.to_string scale))))))
+      let e_scale = scale_expr scale e' t in 
+          (table, SReturn (e_scale))
   | SBlock sl -> 
     let rec check_stmt_list table = function
         [SReturn _ as s] -> let (new_table, st) = check_stmt table s in (new_table, [st])
