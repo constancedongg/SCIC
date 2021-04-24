@@ -2,8 +2,8 @@ float '{cm} x;
 float '{m} y;
 
 int func main(){
-    y = 1.0;
+    y = 1.022;
     x = y; 
-    printf(y); 
+    printf(x); 
     return 0;
 }
