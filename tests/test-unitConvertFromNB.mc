@@ -1,13 +1,12 @@
 |'{km} = 0.001 '{m}|;
 
-float '{cm} x;
+float '{km} x;
 float '{m} y;
 
 int func main(){
-    y = 1.022;
-    float '{km} z = y;
+    x = 0.98531;
+    float '{cm} z = x;
     printf(z);
-    z = y * 335.0;
-    printf(z);
+    /* printf(z +1.1); */
     return 0;
 }
