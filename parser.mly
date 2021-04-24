@@ -160,12 +160,14 @@ func_decl:
    // }}
    unit_typ UNIT FUNC ID LPAREN opt_formals RPAREN LBRACE stmt_list RBRACE{{
       return_type       = $1;
+      return_unit       = $2; 
 		func_identifier   = $4;
 		func_formals      = List.rev $6;
 		func_stmts        = List.rev $9;
    }}
 |  typ FUNC ID LPAREN opt_formals RPAREN LBRACE stmt_list RBRACE{{
       return_type       = $1;
+      return_unit       = "1";
 		func_identifier   = $3;
 		func_formals      = List.rev $5;
 		func_stmts        = List.rev $8;

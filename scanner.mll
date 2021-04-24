@@ -48,6 +48,9 @@ rule token = parse
 | "equa"   { EQUA }
 | "true"   { BOOL_LITERAL(true) }
 | "false"  { BOOL_LITERAL(false) }
+| "m"       { METER }
+| "cm"      { CMETER }
+| "s"       { SEC }
 | digits as lxm { INT_LITERAL(int_of_string lxm) }
 | digits '.'  digit* ( ['e' 'E'] ['+' '-']? digits )? as lxm { FLOAT_LITERAL(lxm) }
 | '\"' ([^'\"']* as lxm ) '\"' {STRING_LITERAL(lxm)}
