@@ -236,8 +236,7 @@ let translate (globals, functions) =
                                   in StringMap.add n local_var m in
                               let new_table = add_local table (t, s) in
                               let e' = expr builder new_table e in
-                              let _ = L.build_store e' (lookup s new_table) builder in
-                              ignore(expr builder table e); 
+                              L.build_store e' (lookup s new_table) builder;
                               (builder, new_table)
       | SReturn e -> ignore(match fdecl.sreturn_type with
                               (* Special "return nothing" instr *)
