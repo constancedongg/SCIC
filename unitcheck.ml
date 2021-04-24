@@ -102,25 +102,59 @@ let check (globals, functions) =
       with Not_found -> raise (Failure ("cannot find unit for identifier " ^ s))
     in
     
+    (* check if data type with unit is float*)
+    let type_of_identifier s table =
+        try StringMap.find s table
+        with Not_found -> raise (Failure ("undeclared identifier " ^ s))
+    in
+
     (* get conversion rate between two untis *)
     let get_multipler lunit runit map =
       if lunit = runit then 1
       else if runit = "1" then 1
       else try let (u, r) = StringMap.find lunit map in
               if u = runit then r
-              else raise (Failure ("right unit is not defined in the conversion rule"))
-            with Not_found -> raise (Failure ("unit " ^ lunit ^ " not defined"))
+              else raise (Failure (lunit ^ " and " ^ runit ^ " is not defined in the conversion rule"))
+            with Not_found -> 
+              try let (u, r) = StringMap.find runit map in
+                if u = lunit then 1 / r
+                else raise (Failure (lunit ^ " and " ^ runit ^ " is not defined in the conversion rule"))
+            with Not_found -> raise (Failure ("unit not defined"))
     in 
 
-
     let rec expr table = function
-      Assign(e1, e2) as ex -> 
+      SIntLit  l   -> ("1", SIntLit l)
+    | SFloatLit l  -> ("1", SFloatLit l)
+    | SBoolLit l   -> ("1", SBoolLit l)
+    | SStringLit l -> ("1", SStringLit l)
+    | SNoexpr      -> ("1", SNoexpr)
+    | SId s        -> (unit_of_identifier s table, SId s)
+    | Binop(e1, op, e2) as e -> 
+      let (t1, e1') = expr table e1 
+      and (t2, e2') = expr table e2 in
+      (* All binary operators require operands of the same type *)
+      let same = t1 = t2 in
+      (* Determine expression type based on operator and operand types *)
+      let ty = match op with
+                Add | Sub | Mult | Div  when same && t1 = Int   -> Int
+              | Add | Sub | Mult | Div | Pow when same && t1 = Float -> Float
+              | Pow when (t1 = Float && t2 = Int) -> Float
+              | Equal | Neq            when same               -> Bool
+              | Less | Leq | Greater | Geq
+                        when same && (t1 = Int || t1 = Float) -> Bool
+              | And | Or when same && t1 = Bool -> Bool
+              | _ -> raise (Failure ("illegal binary operator " ^
+                                    string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
+                                    string_of_typ t2 ^ " in " ^ string_of_expr e))
+      in (ty, SBinop((t1, e1'), op, (t2, e2')))
+
+    |  Assign(e1, e2) as ex -> 
       let lunit = unit_of_identifier e1 table
         and runit = unit_of_identifier e2 table
         and err = "illegal unit assignment " ^ lunit ^ "=" ^ runit
       in 
       (* ignore check_assign lunit runit err ;  *)
-      Assign(e1, Binop(e2, Mult, get_multipler(lunit, runit, units)))
+      Assign(e1, Binop(expr e2 table, Mult, get_multipler(lunit, runit, units)))
 
     (* 
       string/bool/other -> none
