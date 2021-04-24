@@ -53,30 +53,39 @@ program:
    decls EOF { $1 }
 
 decls:
-   /* nothing */   { ([], [])  }
-   | decls var_decl {(($2 :: fst $1), snd $1)}
-   | decls func_decl {(fst $1, ($2 :: snd $1))}
-   // | decls var_decl {{
-   //                vars = $2 :: $1.vars;
-   //                units = $1.units;
-   //                funcs = $1.funcs;
-  	// 				}}
-   // | decls unit_decl {{
-   //                vars = $1.vars;
-   //                units = $2 :: $1.units;
-   //                funcs = $1.funcs;
-  	// 				}}
-   // | decls func_decl {{
-   //                vars = $1.vars;
-   //                units = $1.units;
-   //                funcs = $2 ::$1.funcs;
-  	// 				}}
+   /* nothing */   { {globals=[]; udecls=[]; fdecls=[];} }
+   // | decls var_decl {(($2 :: fst $1), snd $1)}
+   // | decls func_decl {(fst $1, ($2 :: snd $1))}
+   | decls var_decl {{
+                  globals = $2 :: $1.globals;
+                  udecls = $1.udecls;
+                  fdecls = $1.fdecls;
+  					}}
+   | decls unit_decl {{
+                  globals = $1.globals;
+                  udecls = $2 :: $1.udecls;
+                  fdecls = $1.fdecls;
+  					}}
+   | decls func_decl {{
+                  globals = $1.globals;
+                  udecls = $1.udecls;
+                  fdecls = $2 ::$1.fdecls;
+  					}}
    // | decls equa_decl {{
 	// 					vars = $1.vars;
 	// 					units = $1.units;
 	// 					funcs = $1.funcs;
 	// 					equas = $2 :: $1.equas;
   	// 				}}           
+
+
+
+/**************** unit_decl *******************/
+   /* |'{mm} = 0.001 '{m}|; */
+unit_decl:
+   BAR UNIT ASN FLOAT_LITERAL UNIT BAR SEMI { ($2, $5, $4) } 
+   // | BAR UNIT EQ INT_LITERAL UNIT BAR SEMI {($2, $4, $5)} 
+/***********************************/
 
 /*************** var_decl ********************/
 var_decl: 
@@ -135,13 +144,6 @@ typ:
 
 /***********************************/
 
-
-
-/**************** unit_decl *******************/
-// unit_decl:
-//    /* |'{m/s}|; */
-//    BAR PRIME LBRACE UID RBRACE BAR SEMI {($4)} 
-/***********************************/
 
 /**************** func_decl *******************/
 func_decl:

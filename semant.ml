@@ -12,7 +12,7 @@ module SS = Set.Make(String)
  
    Check each global variable, then check each function *)
  
-let check (globals, functions) =
+let check program =
 
   let units = SS.empty 
   in
@@ -35,7 +35,7 @@ let check (globals, functions) =
 
   (**** Check global variables ****)
 
-  check_ubinds "global" globals;
+  check_ubinds "global" program.globals;
 
   (**** Check functions ****)
 
@@ -66,7 +66,7 @@ let check (globals, functions) =
   in
 
   (* Collect all function names into one symbol table *)
-  let function_decls = List.fold_left add_func built_in_decls functions
+  let function_decls = List.fold_left add_func built_in_decls program.fdecls
   in
   
   (* Return a function from our symbol table *)
@@ -103,7 +103,7 @@ let check (globals, functions) =
     
     (* Build local symbol table of variables for this function *)
     let symbols = List.fold_left (fun m (ty, _, name) -> StringMap.add name ty m)
-	                StringMap.empty (globals @ func.func_formals )
+	                StringMap.empty (program.globals @ func.func_formals )
     in
 
     (* Return a variable from our local symbol table *)
@@ -267,4 +267,5 @@ let check (globals, functions) =
 	    (_, SBlock(sl)) -> sl
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
     }
-     in (globals, List.map check_function functions)
+     in (program.udecls, program.globals, List.map check_function program.fdecls) 
+       

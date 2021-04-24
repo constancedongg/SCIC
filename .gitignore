@@ -4,4 +4,5 @@ _build/*
 test-*.s
 test-*.ll
 printbig.o
+testall.sh
 
