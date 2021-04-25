@@ -1,0 +1,2 @@
+Fatal error: exception Failure("illegal declare and assignment float = int in float m x = 2;
+")

@@ -1,4 +1,4 @@
-|'{cm} = 0.001 '{m}|;
+|'{cm} = 0.01 '{m}|;
 
 int func main(){
     return 0;

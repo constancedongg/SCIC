@@ -1,4 +1,4 @@
-(* Unit Semantic checking for the MicroC compiler *)
+(* Unit Semantic checking for the SCIC compiler *)
 
 open Ast
 open Sast
@@ -9,7 +9,7 @@ module SS = Set.Make(String);;
 
 
 let check (udecls, globals, functions) =
-  (* base unit set - static*)
+  (* base unit set - static *)
   let base_units = 
     List.fold_right SS.add ["m"; "s"; "1"; "kg"] SS.empty
   in
@@ -23,21 +23,20 @@ let check (udecls, globals, functions) =
   let nonbase_unit_check u table = 
     match StringMap.find_opt u table with
       Some (bu, l) -> ()
-    | None ->  raise (Failure ("units cannot found in table " ^ u)) 
+    | None ->  raise (Failure ("units cannot be found in table " ^ u)) 
   in 
   
 
   let unit_check u set table = 
     match SS.find_opt u set with
       Some bu -> ()
-    | None -> nonbase_unit_check u table
-           (* raise (Failure ("units cannot found in set " ^ u))  *)
+    | None -> nonbase_unit_check u table         
   in
 
   let base_unit_check u set = 
     match SS.find_opt u set with
     Some bu -> ()
-  | None -> raise (Failure ("units cannot found in set " ^ u)) 
+  | None -> raise (Failure ("units cannot be found in set " ^ u)) 
   in
 
   let nonbase_unit_reverse_check u table = 
@@ -57,9 +56,7 @@ let check (udecls, globals, functions) =
     List.iter (function (u1, u2, _) -> ignore(unit_check u2 base_units units); 
                                         ignore(unit_reverse_check u1 base_units units);
     ) unit_decls;
-    (* List.iter (function
-    (Void, _, b) -> raise (Failure ("illegal void " ^ kind ^ " " ^ b)) 
-    | _ -> ()) ubinds; *)
+
     (* check duplication in new units *)
     let rec dups = function
         [] -> ()
@@ -101,7 +98,6 @@ let check (udecls, globals, functions) =
     let sn = List.fold_left increment_count StringMap.empty ln 
       and sd = List.fold_left increment_count StringMap.empty ld 
     in (sn, sd)
-      (* Printf.eprintf  "Debugging: Numerator %s denominator %s" e1 e2; *)
   in
 
   let derived_unit_check u set table = 
@@ -122,19 +118,6 @@ let check (udecls, globals, functions) =
             Some (bu, c) -> ()
           | None -> derived_unit_check u set table
   in
-         (* raise (Failure ("units cannot found in set " ^ u))  *)
-
-  (* decompose_unit "kg*m/s" base_units units; *)
-  (* let derived_unit_comp u1 u2 = 
-    let (sn, sd) = decompose_unit u1 base_units units 
-      and (sn', sd') = decompose_unit u2 base_units units
-    in
-    StringMap.equal (fun a b -> a = b) sn sn'
-    && StringMap.equal (fun a b -> a = b) sd sd';
-    (* StringMap.iter (fun u m2 StringMap.) sn' *)
-    (* SS.equal sn sn' && SS.equal sd sd';  *)
-  in *)
-
 
   (* check global variable unit exists*)
   let var_unit_check (ubinds : ubind list) =
@@ -151,17 +134,6 @@ let check (udecls, globals, functions) =
     | (t, u, n)::tl -> (t, n)::(resemble tl)
   in 
   
- (* check other variable unit exists, base_units set and units table*)
-
-  (* expressions: unit lookup - left == right?
-    lookup table similar to id->type, id->unit
-  *)
-
- (* function formals, return unit *)
-
- (* convertion: scaling, assign*)
-
- (* unit declaration *)
 
   let built_in_decls = 
     let add_bind map (name, ty) = StringMap.add name {
@@ -219,13 +191,6 @@ let check (udecls, globals, functions) =
                Some (bu, c) -> c
               | None -> raise (Failure ("Cannot find conversion rule for unit " ^ u))
     in
-    (* let reduce_to_base uset =
-      let l = [] in
-       SS.fold (fun buset u -> let (bu, c) = lookup_base u in l @ [bu])
-       l uset;
-       (* (fun buset u -> SS.add "a" buset) SS.empty uset; let (bu, c) = StringMap.find u units in *)
-                            
-    in *)
 
     let reduce_to_base umap =
       let buset = StringMap.fold (fun u i buset -> StringMap.add (lookup_base u) i buset) umap StringMap.empty
@@ -241,26 +206,25 @@ let check (udecls, globals, functions) =
       let (snb, cn) = reduce_to_base sn and (snb',cn') = reduce_to_base sn' and (sdb,cd) = reduce_to_base sd and (sdb',cd') = reduce_to_base sd' in
       if (StringMap.equal (fun a b -> a = b) snb snb'
         && StringMap.equal (fun a b -> a = b) sdb sdb')
-        then (cn /. cd )/. (cn' /. cd')   (* raise( Failure( Float.to_string ((cn /. cd ) /. (cn' /. cd')) ) )*)
+        then (cn /. cd )/. (cn' /. cd')   
       else raise( Failure("No conversion rules between unit " ^ lunit ^ " and " ^ runit))
     in
 
     (* get conversion rate between two units *)
     let get_scale lunit runit map =
         if lunit = runit then 1.0
-        (* else if runit = "1" then 1.0 *)
         else try let (u, r) = StringMap.find lunit map in
                 if u = runit then r
                 else let (u', r') = StringMap.find runit map in
                       if u' = u then r /. r'
                       else  raise (Failure (lunit ^ " and " ^ runit ^ " is not defined in the conversion rule")) 
-              with Not_found -> derived_get_scale lunit runit; (* raise (Failure ("unit not defined")) *)
+              with Not_found -> derived_get_scale lunit runit; 
                 try let (u, r) = StringMap.find runit map in
                   if u = lunit then 1.0 /. r
                   else let (u', r') = StringMap.find lunit map in
                         if u' = u then r' /. r
                         else raise (Failure (lunit ^ " and " ^ runit ^ " is not defined in the conversion rule"))
-              with Not_found -> derived_get_scale lunit runit; (* raise (Failure ("unit not defined")) *)
+              with Not_found -> derived_get_scale lunit runit; 
       in 
 
     let scale_expr scaler e t = 
@@ -279,8 +243,6 @@ let check (udecls, globals, functions) =
     in
   
 
-  (* let convert e2' scale = e2' in *)
-  (* in this layer, we still use SAST, BUT ALL TYPE IS UNIT TYPE*)
   let rec expr table (t, e) = match e with
     SIntLit  l   -> ("1", (t, SIntLit l))
   | SFloatLit l  -> ("1", (t, SFloatLit l))
@@ -298,7 +260,7 @@ let check (udecls, globals, functions) =
 
   | SFunctionCall(fname, args) as call -> 
     let fd = find_func fname in
-    (* check each of the args, to see if it can scale*)
+    (* check each of the args, to see if it can scale *)
     let check_args_unit (_,fu,_) e =
       let (eu, (t, e')) = expr table e in
         if StringMap.mem fname built_in_decls  || check_right_unit eu 
@@ -349,8 +311,6 @@ let check (udecls, globals, functions) =
 
 in
 
-  (* in this layer, we still use SAST, BUT ALL TYPE IS UNIT TYPE*)
-  (* I guess -> so no need to write USAT *)
   let rec check_stmt table = function 
    SExpr e -> let (u, e') = expr table e in (table, SExpr(e'))
 
@@ -404,18 +364,4 @@ in
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
     }
 
-
-
-    (* let rec check_stmt table = function
-      
-  in *)
-  (* body of check_function *)
-  (* { sreturn_type = func.sreturn_type;
-  sfunc_identifier = func.sfunc_identifier;
-  sfunc_formals = func.sfunc_formals;
-  sfunc_stmts = func.sfunc_stmts;
-  (* sfunc_stmts = match check_stmt symbols (Block func.func_stmts) with
-    (_, SBlock(sl)) -> sl
-    | _ -> raise (Failure ("internal error: block didn't become a block?")) *)
-  } *)
 in (resemble globals, List.map check_function functions)

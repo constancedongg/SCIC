@@ -1,6 +1,7 @@
 |'{km} = 0.001 '{m}|;
 
-float '{km} func foo(float '{m} x) {
+/* parameters can be auto-converted when paased into function */
+float '{km} func foo(float '{m} x) {     
     float '{km} y = x;
     return y;
 }

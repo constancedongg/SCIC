@@ -9,12 +9,6 @@ type typ = Int | Bool | Float | String | Void | IntArr | FloatArr
 
 type uni = string
 
-(* type unt = Meter | Centimeter | Second | Nounit *)
-
-(* type uexpr = 
-  Unit of string
-  | Nounit *)
-(* type unt = Nounit of string *)
 
 type bind = typ * string
 
@@ -53,7 +47,6 @@ type func_decl = {
     func_formals : ubind list;
     func_stmts : stmt list;
   }
-  (* retun_unit: unt; *)
 
 
 type program = {
@@ -61,7 +54,8 @@ type program = {
   globals: ubind list;
   fdecls: func_decl list;
 }
-(* unit_decl list * ubind list * func_decl list *)
+
+
 
 (* Pretty-printing functions *)
 
@@ -92,9 +86,6 @@ let string_of_op = function
 let string_of_uop = function
     Neg -> "-"
   | Not -> "!"
-
-(* let string_of_unit = function
-  Unit(s) -> s *)
 
 
 let rec string_of_expr = function

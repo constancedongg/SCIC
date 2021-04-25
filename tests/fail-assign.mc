@@ -1,4 +1,4 @@
 int func main() {
-    printl("Hello world!");
+    float '{m} x = 2;
     return 0;
 }
