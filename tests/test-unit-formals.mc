@@ -1,10 +1,12 @@
-float '{m} func foo(float '{cm} x) {
-    float '{m} y = x;
+|'{km} = 0.001 '{m}|;
+
+float '{km} func foo(float '{m} x) {
+    float '{km} y = x;
     return y;
 }
 
 int func main() {
-    float '{cm} tmp = 30.0;
+    float '{cm} tmp = 3000.0;
     printf(foo(tmp)); 
     return 0;
 }
