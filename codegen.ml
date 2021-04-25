@@ -231,16 +231,16 @@ let translate (globals, functions) =
           let build_br_merge = L.build_br merge_bb in (* partial function *)
 
           let then_bb = L.append_block context "then" the_function in
-          let (builder, table) = stmt (L.builder_at_end context then_bb) table then_stmt in
-            add_terminal builder build_br_merge;
+          let (then_builder, table) = stmt (L.builder_at_end context then_bb) table then_stmt in
+            add_terminal then_builder build_br_merge;
 
           let else_bb = L.append_block context "else" the_function in
-          let (builder, table) = stmt (L.builder_at_end context else_bb) table else_stmt in
-            add_terminal builder build_br_merge;
+          let (else_builder, table) = stmt (L.builder_at_end context else_bb) table else_stmt in
+            add_terminal else_builder build_br_merge;
 
 	          ignore(L.build_cond_br bool_val then_bb else_bb builder);
-	          (L.builder_at_end context merge_bb, table)
-
+	        L.builder_at_end context merge_bb, table
+          
       | SWhile (predicate, body) ->
           let pred_bb = L.append_block context "while" the_function in
           ignore(L.build_br pred_bb builder);
