@@ -1,4 +1,4 @@
-(* Top-level of the MicroC compiler: scan & parse the input,
+(* Top-level of the SCIC compiler: scan & parse the input,
    check the resulting AST and generate an SAST from it, generate LLVM IR,
    and dump the module *)
 
@@ -10,10 +10,10 @@ let () =
   let speclist = [
     ("-a", Arg.Unit (set_action Ast), "Print the AST");
     ("-s", Arg.Unit (set_action Sast), "Print the SAST");
+    ("-u", Arg.Unit (set_action Usast), "Print the USAST");
     ("-l", Arg.Unit (set_action LLVM_IR), "Print the generated LLVM IR");
     ("-c", Arg.Unit (set_action Compile),
       "Check and print the generated LLVM IR (default)");
-    ("-u", Arg.Unit (set_action Usast), "Print the USAST");
   ] in  
   let usage_msg = "usage: ./scic.native [-a|-s|-l|-c] [file.mc]" in
   let channel = ref stdin in

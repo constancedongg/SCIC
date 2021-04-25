@@ -38,7 +38,6 @@ type sfunc_decl = {
     sfunc_stmts: sstmt list;
   }
 
-  (* sreturn_unit: unt; *)
 
 type sprogram = unit_decl list * ubind list * sfunc_decl list
 

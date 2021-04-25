@@ -1,11 +1,4 @@
-(* Code generation: translate takes a semantically checked AST and
-produces LLVM IR
-LLVM tutorial: Make sure to read the OCaml version of the tutorial
-http://llvm.org/docs/tutorial/index.html
-Detailed documentation on the OCaml LLVM library:
-http://llvm.moe/
-http://llvm.moe/ocaml/
-*)
+(* Code generation: translate takes a semantically checked AST and produces LLVM IR *)
 module C = Char
 module L = Llvm
 module A = Ast
@@ -27,7 +20,6 @@ let translate (globals, functions) =
   and i1_t       = L.i1_type     context
   and float_t    = L.double_type context
   and void_t     = L.void_type   context 
-  (* and void_ptr_t = L.pointer_type (L.i8_type context) *)
   and string_t   = L.pointer_type (L.i8_type context)
   in
 
@@ -41,7 +33,6 @@ let translate (globals, functions) =
     | A.String -> string_t
     | A.IntArr -> L.pointer_type (ltype_of_typ A.Int) 
     | A.FloatArr -> L.pointer_type (ltype_of_typ A.Float) 
-    (* | _ -> raise (Failure "type not defined") *)
   in
 
   (* Create a map of global variables after creating each *)
@@ -92,18 +83,10 @@ let translate (globals, functions) =
           let local = L.build_alloca (ltype_of_typ t) n builder in
                 ignore (L.build_store p local builder);
           StringMap.add n local m 
-    
-          (* Allocate space for any locally declared variables and add the
-           * resulting registers to our map *)
-          (* and add_local m (t, n) =
-      let local_var = L.build_alloca (ltype_of_typ t) n builder
-      in StringMap.add n local_var m  *)
           in
 
           List.fold_left2 add_formal StringMap.empty fdecl.sfunc_formals
               (Array.to_list (L.params the_function))
-          (* in
-          List.fold_left add_local formals fdecl.slocals  *)
         in
 
     (* Return the value for a variable or formal argument.
@@ -184,8 +167,6 @@ let translate (globals, functions) =
       | SFunctionCall("printl", [e]) -> L.build_call printf_func [| str_format_str ; (expr builder table e) |] "printf" builder
       | SFunctionCall ("printbig", [e]) ->
 	        L.build_call printbig_func [| (expr builder table e) |] "printbig" builder
-      (* | SFunctionCall("printc", [e]) -> 
-        L.build_call printc_func [| (expr builder e) |] "printc" builder  *)
       | SFunctionCall ("printf", [e]) -> 
 	        L.build_call printf_func [| float_format_str ; (expr builder table e) |]
 	        "printf" builder

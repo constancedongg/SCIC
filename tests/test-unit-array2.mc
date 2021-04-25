@@ -1,5 +1,6 @@
-|'{ms} = 1000.0 '{s}|;
+/* test array access */
 
+|'{ms} = 1000.0 '{s}|;
 
 int func main() {
     float[] '{cm} x = [1.1, 2.2, 3.3];

@@ -1,15 +1,13 @@
-
-float func foo(float x) {
-    float a = x + 0.99;
-    printf(x);
-    printf(a);
+void func foo(int x, int y, bool a, bool b) {
+    if (a && b) 
+        print(x + y);
+    else 
+        print(x - y);
     return a;
 }
 
 int func main() {
-    printf(foo(0.1));
-    /* assign to a local*/
-    float ua = foo(0.2);
-    printf(ua); 
+    foo(1, 2, true, false);   /* -1 */
+    foo(1, 2, true, true);    /*  3 */ 
     return 0;
 }

@@ -1,3 +1,4 @@
+/* example of recording experiment result */
 int func main() {
     int i = 0;
     float[] '{m} dx = [2.3, 4.5, 3.4, 0.7];

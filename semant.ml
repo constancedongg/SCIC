@@ -1,11 +1,10 @@
-(* Semantic checking for the MicroC compiler *)
+(* Semantic checking for the SCIC compiler *)
 
 open Ast
 open Sast
 
 module StringMap = Map.Make(String)
 module SS = Set.Make(String)
-(* module Mut = Set.Make(struct type t = unt;; let compare = compare end);; *)
 
 (* Semantic checking of the AST. Returns an SAST if successful,
    throws an exception if something is wrong.
@@ -39,7 +38,7 @@ let check program =
 
   (**** Check functions ****)
 
-  (* Here is what for hello world : build-in function*)
+
   (* Collect function declarations for built-in functions: no bodies *)
   let built_in_decls = 
     let add_bind map (name, ty) = StringMap.add name {
@@ -78,19 +77,6 @@ let check program =
 
   let _ = find_func "main" in (* Ensure "main" is defined *)
 
-  (* Verify a list of bindings has no void types or duplicate names *)
-  (* let check_binds (kind : string) (binds : bind list) =
-    List.iter (function
-  (Void, b) -> raise (Failure ("illegal void " ^ kind ^ " " ^ b))
-      | _ -> ()) binds;
-    let rec dups = function
-        [] -> ()
-      |	((_,n1) :: (_,n2) :: _) when n1 = n2 ->
-    raise (Failure ("duplicate " ^ kind ^ " " ^ n1))
-      | _ :: t -> dups t
-    in dups (List.sort (fun (_,a) (_,b) -> compare a b) binds)
-  in *)
-
   let check_function func =
     (* Make sure no formals or locals are void or duplicates *)
     check_ubinds "formal" func.func_formals;
@@ -116,19 +102,17 @@ let check program =
     (* type_to_array converts type to corresponding array type for array handling *)
     let type_to_array = function
       | Int -> IntArr
-      (* | Bool -> BoolArr *)
-      (* | String -> StringArr *)
       | Float -> FloatArr
       | _ as x -> x
     in 
+
     (* array_to_type converts array types to their corresponding non-array types *)
     let array_to_type = function
       | IntArr -> Int
-      (* | BoolArr -> Bool *)
       | FloatArr -> Float
-      (* | StringArr -> String *)
       | _ as x -> x
     in 
+
     (* Return a semantically-checked expression, i.e., with a type *)
     let rec expr table = function
         IntLit  l -> (Int, SIntLit l)
@@ -137,13 +121,6 @@ let check program =
       | StringLit l -> (String, SStringLit l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s table, SId s)
-      (* | DAssign(lt, var, e) as ex -> (* y == int x = 3*)
-          (* must put variable name into symbols?*)
-          let symbols = StringMap.add var lt symbols in
-          let (rt, e') = expr e in
-          let err = "illegal assignment " ^ string_of_typ lt ^ "=" ^ string_of_typ rt ^ " in " ^ string_of_expr ex in
-          let lt2 = check_assign lt rt err in
-          (check_assign lt2 rt err, SDAssign(lt2, var, (rt, e'))) *)
       | Assign(e1, e2) as ex -> 
           let (lt, e1') = match e1 with 
                 Id(s) -> (type_of_identifier s table, SId s)
@@ -187,8 +164,8 @@ let check program =
                             " arguments in " ^ string_of_expr call))
           else let check_call (ft, _,_) e = 
             let (et, e') = expr table e in 
-            let err = "illegal argument found " ^ string_of_typ et ^
-              " expected " ^ string_of_typ ft ^ " in " ^ string_of_expr e
+            let err = "illegal argument " ^ string_of_typ et ^
+              " found, " ^ string_of_typ ft ^ " in " ^ string_of_expr e ^ " expected"
             in (check_assign ft et err, e')
           in 
           let args' = List.map2 check_call fd.func_formals args
@@ -200,7 +177,7 @@ let check program =
           | a :: tl -> 
             let (t, e) = expr table a in
             if t = typ then helper t ((t, e) :: out) tl 
-            else raise (Failure ("multiple types in array not allowed"))
+            else raise (Failure ("multiple types in an array not allowed"))
         in (match el with 
             | a :: tl ->  let (t,e) = expr table a in helper t [(t, e)] tl 
             | [] -> raise (Failure ("empty array init not allowed")))
@@ -220,16 +197,13 @@ let check program =
       in if t' != Bool then raise (Failure err) else (t', e') 
     in
 
-    (* let print_map key value =
-      let new_value = string_of_typ value in
-      print_string(key ^ " " ^ new_value ^ "\n") in  *)
-
     (* Return a semantically-checked statement i.e. containing sexprs *)
     let rec check_stmt table = function
         Expr e -> (table, SExpr (expr table e))
-      | DAssign(lt, unt, var, e) -> 
+      | DAssign(lt, unt, var, e) as ex -> 
         let (rt, e') = expr table e in
-        let err = "illegal assignment" in
+        let err = "illegal declare and assignment " ^ string_of_typ lt ^ " = " ^ 
+            string_of_typ rt ^ " in " ^ string_of_stmt ex in
         let lt2 = check_assign lt rt err in
         let new_table = StringMap.add var lt2 table in
         (new_table, SDAssign(lt2, unt, var, (rt, e')))
@@ -261,12 +235,12 @@ let check program =
 
     in (* body of check_function *)
     { sreturn_type = func.return_type;
-    sreturn_unit = func.return_unit;
-    sfunc_identifier = func.func_identifier;
-    sfunc_formals = func.func_formals;
-    sfunc_stmts = match check_stmt symbols (Block func.func_stmts) with
-	    (_, SBlock(sl)) -> sl
-      | _ -> raise (Failure ("internal error: block didn't become a block?"))
-    }
-     in (program.udecls, program.globals, List.map check_function program.fdecls) 
+      sreturn_unit = func.return_unit;
+      sfunc_identifier = func.func_identifier;
+      sfunc_formals = func.func_formals;
+      sfunc_stmts = match check_stmt symbols (Block func.func_stmts) with
+        (_, SBlock(sl)) -> sl
+        | _ -> raise (Failure ("internal error: block didn't become a block?"))
+      }
+  in (program.udecls, program.globals, List.map check_function program.fdecls) 
        
