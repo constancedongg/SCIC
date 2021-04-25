@@ -13,11 +13,6 @@ module SS = Set.Make(String)
  
 let check program =
 
-  let units = SS.empty 
-  in
-  let units =
-    List.fold_right SS.add ["m"; "cm"; "s"; "1"] units
-  in
   
   (* SCIC does not have void type, which here only check for duplicate names *)
   (* Verify a list of bindings has no void types or duplicate names *)

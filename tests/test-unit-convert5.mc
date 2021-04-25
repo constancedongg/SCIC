@@ -9,5 +9,7 @@ int func main(){
     printf(z);
     z = y * 335.0;
     printf(z);
+    float '{km} w = (3.1 + y) * 10.;
+    printf(w);
     return 0;
 }

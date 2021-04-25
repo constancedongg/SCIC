@@ -11,7 +11,7 @@ module SS = Set.Make(String);;
 let check (udecls, globals, functions) =
   (* base unit set - static *)
   let base_units = 
-    List.fold_right SS.add ["m"; "s"; "1"; "kg"] SS.empty
+    List.fold_right SS.add ["m"; "s"; "kg"; "A"; "K"; "mol"; "cd"; "1";] SS.empty
   in
 
   (* unit maping key: non-base unit, value: (base unit, scale)*)
@@ -298,6 +298,8 @@ let check (udecls, globals, functions) =
                   else if check_right_unit eu1 then eu2
                   else if check_right_unit eu2 then eu1
                   else eu1 ^  "/"  ^ eu2
+      | Add | Sub -> if check_right_unit eu1 then eu2
+                      else eu1
       | _ -> eu1
       in
     let e2_scale = check_binop_unit op e1 e2 in
