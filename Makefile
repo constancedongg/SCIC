@@ -19,7 +19,9 @@ all : scic.native printbig.o
 
 scic.native :
 	opam config exec -- \
-	ocamlbuild -use-ocamlfind scic.native
+	ocamlbuild -use-ocamlfind scic.native -pkgs str
+	
+# 
 
 # "make clean" removes all generated files
 
