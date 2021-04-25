@@ -105,7 +105,8 @@ typ:
   | FLOATARR { FloatArr }
 
 unit_typ:
-   FLOAT  { Float }  
+   FLOAT    { Float }  
+ | FLOATARR { FloatArr }
 // lst_type:
 //     typ LBRACK RBRACK { ArrayType($1) }
 
