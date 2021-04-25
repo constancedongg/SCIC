@@ -83,6 +83,12 @@ let check (udecls, globals, functions) =
 
   let units = add_unit_decls udecls units in
 
+  let increment_count counter u = 
+    match StringMap.find_opt u counter with
+    Some i -> let i = i+1 in StringMap.add u i counter
+    | None -> StringMap.add u 1 counter
+  in
+
   let decompose_unit u set table = 
     let l = Str.split (Str.regexp "/") u in
     let (ln, ld) = match l with
@@ -92,8 +98,8 @@ let check (udecls, globals, functions) =
     in 
     List.iter (fun s -> unit_check s set table) ln;
     List.iter (fun s -> unit_check s set table) ld;
-    let sn = List.fold_left (fun s u -> SS.add u s) SS.empty ln
-      and sd = List.fold_left (fun s u -> SS.add u s) SS.empty ld
+    let sn = List.fold_left increment_count StringMap.empty ln 
+      and sd = List.fold_left increment_count StringMap.empty ld 
     in (sn, sd)
       (* Printf.eprintf  "Debugging: Numerator %s denominator %s" e1 e2; *)
   in
@@ -119,16 +125,15 @@ let check (udecls, globals, functions) =
          (* raise (Failure ("units cannot found in set " ^ u))  *)
 
   (* decompose_unit "kg*m/s" base_units units; *)
-
-  let derived_unit_comp u1 u2 = 
+  (* let derived_unit_comp u1 u2 = 
     let (sn, sd) = decompose_unit u1 base_units units 
       and (sn', sd') = decompose_unit u2 base_units units
-    in 
-    SS.equal sn sn' && SS.equal sd sd'; 
-  in
-
-
-
+    in
+    StringMap.equal (fun a b -> a = b) sn sn'
+    && StringMap.equal (fun a b -> a = b) sd sd';
+    (* StringMap.iter (fun u m2 StringMap.) sn' *)
+    (* SS.equal sn sn' && SS.equal sd sd';  *)
+  in *)
 
 
   (* check global variable unit exists*)
@@ -222,10 +227,10 @@ let check (udecls, globals, functions) =
                             
     in *)
 
-    let reduce_to_base uset =
-      let buset = SS.fold (fun u buset -> SS.add (lookup_base u) buset) uset SS.empty
+    let reduce_to_base umap =
+      let buset = StringMap.fold (fun u i buset -> StringMap.add (lookup_base u) i buset) umap StringMap.empty
       in
-      let scale = SS.fold (fun u scale -> scale *. (lookup_base_scale u)) uset 1.0
+      let scale = StringMap.fold (fun u i scale -> scale *. (lookup_base_scale u) ** float_of_int i) umap 1.0
       in
       (buset, scale)
     in
@@ -234,7 +239,9 @@ let check (udecls, globals, functions) =
       let (sn, sd) = decompose_unit lunit base_units units and (sn', sd') = decompose_unit runit base_units units
       in
       let (snb, cn) = reduce_to_base sn and (snb',cn') = reduce_to_base sn' and (sdb,cd) = reduce_to_base sd and (sdb',cd') = reduce_to_base sd' in
-      if SS.equal snb snb' && SS.equal sdb sdb' then (cn /. cd )/. (cn' /. cd')   (* raise( Failure( Float.to_string ((cn /. cd ) /. (cn' /. cd')) ) )*)
+      if (StringMap.equal (fun a b -> a = b) snb snb'
+        && StringMap.equal (fun a b -> a = b) sdb sdb')
+        then (cn /. cd )/. (cn' /. cd')   (* raise( Failure( Float.to_string ((cn /. cd ) /. (cn' /. cd')) ) )*)
       else raise( Failure("No conversion rules between unit " ^ lunit ^ " and " ^ runit))
     in
 
@@ -320,8 +327,20 @@ let check (udecls, globals, functions) =
           let e2_scale = scale_expr scale e2' t2 in
           e2_scale
       | _ -> e2 in
-    let e2_scale = check_binop_unit op e1 e2 
-    in (eu1, (t1, SBinop(e1, op, e2_scale)))
+    let muti op eu1 eu2 = match op with
+      | Mult -> if check_right_unit eu1 && check_right_unit eu2 then eu1
+                  else if check_right_unit eu1 then eu2
+                  else if check_right_unit eu2 then eu1
+                  else eu1 ^ "*" ^ eu2
+      | Div -> if check_right_unit eu1 && check_right_unit eu2 then eu1
+                  else if check_right_unit eu1 then eu2
+                  else if check_right_unit eu2 then eu1
+                  else eu1 ^  "/"  ^ eu2
+      | _ -> eu1
+      in
+    let e2_scale = check_binop_unit op e1 e2 in
+    let eu_change = muti op eu1 eu2
+    in (eu_change, (t1, SBinop(e1, op, e2_scale)))
   | SArray(el) -> 
     ("1", (t, SArray(el)))
   | SArrayAccess(e1, e2) -> 
