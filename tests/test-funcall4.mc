@@ -3,7 +3,6 @@ void func foo(int x, int y, bool a, bool b) {
         print(x + y);
     else 
         print(x - y);
-    return a;
 }
 
 int func main() {
