@@ -1,4 +1,4 @@
-void func foo(int x, int y, bool a, bool b) {
+bool func foo(int x, int y, bool a, bool b) {
     if (a && b) 
         print(x + y);
     else 
