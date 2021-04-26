@@ -1,4 +1,4 @@
-The MicroC compiler
+The SCIC compiler
 
 Coded in OCaml, this takes a highly stripped-down subset of C (ints,
 bools, and void types, arithmetic, if-else, for, and while statements,
@@ -63,11 +63,22 @@ Installation using Docker
 
   # make
   ...
-  test-add1...OK
-  test-arith1...OK
-  test-arith2...OK
-  test-arith3...OK
-  ... etc.
+  -n test-arr1...
+   OK
+   -n test-arr2...
+   OK
+   -n test-block...
+   OK
+   ...
+   -n fail-unit-decl3...
+   OK
+   -n fail-unit-decl4...
+   OK
+   -n fail-unit-type...
+   OK
+   -n fail-while...
+   OK
+
 
   # make clean
 
@@ -244,14 +255,31 @@ To run and test:
 
 $ make
 ocamlbuild -use-ocamlfind -pkgs llvm,llvm.analysis -cflags -w,+a-4 microc.native
-Finished, 22 targets (0 cached) in 00:00:01.
+Finished, 31 targets (0 cached) in 00:00:03
 cc    -c -o printbig.o printbig.c
 $ ./testall.sh
-test-arith1...OK
-test-arith2...OK
-test-arith3...OK
-test-fib...OK
+-n test-arr1...
+OK
+-n test-arr2...
+OK
+-n test-block...
+OK
+-n test-boolOp...
+OK
+-n test-floatBinop...
+OK
+-n test-for1...
+OK
 ...
-fail-while1...OK
-fail-while2...OK
-
+-n fail-unit-decl1...
+OK
+-n fail-unit-decl2...
+OK
+-n fail-unit-decl3...
+OK
+-n fail-unit-decl4...
+OK
+-n fail-unit-type...
+OK
+-n fail-while...
+OK
