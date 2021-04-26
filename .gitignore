@@ -5,4 +5,5 @@ test-*.s
 test-*.ll
 printbig.o
 testall.sh
+./tests_not_passed
 
