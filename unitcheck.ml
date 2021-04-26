@@ -310,7 +310,6 @@ let check (udecls, globals, functions) =
   | SArrayAccess(e1, e2) -> 
     let (u, e1') = expr table e1 in
     (u, (t, SArrayAccess(e1', e2)))
-
 in
 
   let rec check_stmt table = function 

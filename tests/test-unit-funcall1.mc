@@ -1,7 +1,7 @@
 |'{km} = 0.001 '{m}|;
 
 /* parameters can be auto-converted 
-    when paased into function */
+    when passed into function */
 float '{km} func foo(float '{m} x) { 
     printf(x); /* 30 (m) */    
     float '{m} y = x;
