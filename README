@@ -13,11 +13,11 @@ The version of the OCaml llvm library must match the version of the LLVM
 system installed on your system.
 
 In addition to print, which calls the C library function printf(),
-microc gratuitiously includes a primitive function "printbig," which
+SCIC gratuitiously includes a primitive function "printbig," which
 prints large ASCII-encoded characters.
 
-The stock C compiler compiles printbig.o.  testall.sh runs the microc
-executable on each testcase (.mc file) to produce a .ll file, invokes
+The stock C compiler compiles printbig.o.  testall.sh runs the SCIC
+executable on each testcase (.sc file) to produce a .ll file, invokes
 "llc" (the LLVM compiler) to produce a .s (assembly) file, then
 invokes "cc" (the stock C compiler) to assemble the .s file, link in
 printbig.o, and generate an executable.  See testall.sh for details.
@@ -51,15 +51,15 @@ Installation using Docker
 
   If this fails, you will need to correct your installation.
 
-* Move to where you unpacked the microc source:
+* Move to where you unpacked the SCIC source:
 
-  cd microc
+  cd SCIC
 
 * Invoke docker
 
-  docker run --rm -it -v `pwd`:/home/microc -w=/home/microc columbiasedwards/plt
+  docker run --rm -it -v `pwd`:/home/SCIC -w=/home/SCIC columbiasedwards/plt
 
-* Inside docker, compile MicroC and run the regression tests:
+* Inside docker, compile SCIC and run the regression tests:
 
   # make
   ...
@@ -234,11 +234,11 @@ Installation under OS X
    csrutil enable
    reboot
 
-9. To run and test, navigate to the MicroC folder. Once there, run
+9. To run and test, navigate to the SCIC folder. Once there, run
 
    make ; ./testall.sh
 
-   MicroC should build without any complaints and all tests should
+   SCIC should build without any complaints and all tests should
    pass.
 
    IF RUNNING ./testall.sh FAILS ON SOME TESTS, check to make sure you
@@ -254,7 +254,7 @@ Installation under OS X
 To run and test:
 
 $ make
-ocamlbuild -use-ocamlfind -pkgs llvm,llvm.analysis -cflags -w,+a-4 microc.native
+ocamlbuild -use-ocamlfind -pkgs llvm,llvm.analysis -cflags -w,+a-4 SCIC.native
 Finished, 31 targets (0 cached) in 00:00:03
 cc    -c -o printbig.o printbig.c
 $ ./testall.sh
